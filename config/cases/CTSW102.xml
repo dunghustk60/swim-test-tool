@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<case id="CTSW102">
+      
+  <!-- Text Messages (1–6): Various rejection scenarios -->
+      
+  <msg idx="1"><![CDATA[[CTSW102-1] Erroneous Message 1]]></msg>
+      
+  <msg idx="2"><![CDATA[[CTSW102-2] Erroneous Message 2]]></msg>
+      
+  <msg idx="3"><![CDATA[[CTSW102-3] Erroneous Message 3]]></msg>
+      
+  <msg idx="4"/>
+   
+  <!-- Empty payload for Msg 4 (amqp-value empty) -->
+      
+  <msg idx="5"><![CDATA[[CTSW102-5] Erroneous Message 5]]></msg>
+      
+  <msg idx="6"><![CDATA[[CTSW102-6] Erroneous Message 6]]></msg>
+      
+  <!-- Binary Messages (7–12): File-based payloads -->
+      
+  <msg idx="7"><![CDATA[materials/sample.pdf]]></msg>
+      
+  <msg idx="8"><![CDATA[materials/sample.pdf]]></msg>
+      
+  <msg idx="9"><![CDATA[materials/sample.pdf]]></msg>
+      
+  <msg idx="10"/>
+   
+  <!-- Empty binary payload for Msg 10 (data element empty) -->
+      
+  <msg idx="11"><![CDATA[materials/sample.pdf|/C=EU/ADMD=ICAO/PRMD=TEST/O=GATEWAY/OU=AMHS/CN=LONGADDR1]]></msg>
+      
+  <msg idx="12"><![CDATA[materials/sample.pdf]]></msg>
+      
+  <!-- IPM-ID and Registered-ID patterns -->
+      
+  <config key="ipm_id_pattern"><![CDATA[IPM.CTSW102.{ts}]]></config>
+      
+  <config key="reg_id_pattern"><![CDATA[REG.CTSW102.{idx}]]></config>
+  <config key="binary_file_path"><![CDATA[materials/sample.pdf]]></config>
+    
+  <config key="amhs_recipients">VVTSYMYX</config>
+</case>

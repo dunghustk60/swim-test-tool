@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<case id="CTSW114">
+      
+  <!-- Msg 1: Trigger NDR by deleting message in AMHS Tool -->
+      
+  <msg idx="1"><![CDATA[[CTSW114-1] Trigger Non-Delivery Report]]></msg>
+      
+  <!-- amhs_originator: REQUIRED 8-char AFTN address or full AMHS MF-address for NDR return path -->
+      
+  <config key="amhs_originator"><![CDATA[VVTSYMYX]]></config>
+      
+  <!-- amhs_notification_request: must include 'nrn' per EUR Doc 047 §4.4.7.3 -->
+      
+  <config key="amhs_notification_request"><![CDATA[nrn]]></config>
+      
+  <!-- IPM-ID and Registered-ID patterns -->
+      
+  <config key="ipm_id_pattern"><![CDATA[IPM.CTSW114.{ts}]]></config>
+      
+  <config key="reg_id_pattern"><![CDATA[REG.CTSW114]]></config>
+    
+  <config key="amhs_recipients">VVTSYMYX</config>
+</case>

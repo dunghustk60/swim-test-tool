@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<case id="CTSW115">
+      
+  <!-- Msg 1: IA5 text body part -->
+      
+  <msg idx="1"><![CDATA[[CTSW115-1] Lorem ipsum]]></msg>
+      
+  <!-- Msg 2: IA5 text body part (specific variant) -->
+      
+  <msg idx="2"><![CDATA[[CTSW115-2] Lorem ipsum i5bpt]]></msg>
+      
+  <!-- Msg 3: General text body part (ISO-646) -->
+      
+  <msg idx="3"><![CDATA[[CTSW115-3] Lorem ipsum 646]]></msg>
+      
+  <!-- Msg 4: General text body part (ISO-8859-1) -->
+      
+  <msg idx="4"><![CDATA[[CTSW115-4] Lorem ipsum 8859]]></msg>
+      
+  <!-- IPM-ID and Registered-ID patterns -->
+      
+  <config key="ipm_id_pattern"><![CDATA[IPM.CTSW115.{ts}]]></config>
+      
+  <config key="reg_id_pattern"><![CDATA[REG.CTSW115]]></config>
+    
+  <config key="amhs_recipients">VVTSYMYX</config>
+</case>

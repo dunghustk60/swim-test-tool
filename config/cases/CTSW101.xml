@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<case id="CTSW101">
+      
+  <!-- Msg 1: Text message with AMQP priority default (4) → DD/Normal in AMHS -->
+      
+  <msg body-type="THIS IS A TEST MESSAGE FROM SWIM" 
+  content-type="text/plain;charset=utf-8" 
+  description="Text message | priority=5 | content-type: text/plain;charset=utf-8 | body: amqp-value" file="false" idx="1" input-key="p1" mandatory="true" optional="false"><![CDATA[[CTSW101-1] Test message priority-4 content text]]></msg>
+      
+  <!-- Msg 2: Binary message (PDF file path) - loaded from materials directory -->
+      
+  <msg body-type="data" content-type="application/octet-stream" description="Binary message | priority=4 | content-type: application/octet-stream | body: data" file="true" idx="2" input-key="binFile" mandatory="true" optional="false"><![CDATA[materials/sample.pdf]]></msg>
+      
+  <!-- IPM-ID and Registered-ID patterns per EUR Doc 047 §4.5.4.27-4.5.4.31 -->
+      
+  <config key="ipm_id_pattern"><![CDATA[IPM.CTSW101.{ts}]]></config>
+      
+  <config key="reg_id_pattern"><![CDATA[REG.CTSW101.{idx}]]></config>
+    
+  <config key="binary_file_path"><![CDATA[materials/sample.pdf]]></config>
+  <config key="amhs_recipients">VVTSYMYX</config>
+</case>

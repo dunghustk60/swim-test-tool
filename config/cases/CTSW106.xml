@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<case id="CTSW106">
+      
+  <!-- Msg 1: priority=4, OHI < 53 chars -->
+      
+  <msg idx="1"><![CDATA[[CTSW106-1] OHI-SHORT | OHI Content]]></msg>
+      
+  <!-- Msg 2: priority=4, OHI = 53 chars exactly -->
+      
+  <msg idx="2"><![CDATA[[CTSW106-2] AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA | OHI Content]]></msg>
+      
+  <!-- Msg 3: priority=4, OHI > 53 chars (will be trimmed) -->
+      
+  <msg idx="3"><![CDATA[[CTSW106-3] AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA | OHI Content]]></msg>
+      
+  <!-- Msg 4: priority=6, OHI < 48 chars -->
+      
+  <msg idx="4"><![CDATA[[CTSW106-4] OHI-HI-SHORT | OHI Content]]></msg>
+      
+  <!-- Msg 5: priority=6, OHI = 48 chars exactly -->
+      
+  <msg idx="5"><![CDATA[[CTSW106-5] BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB | OHI Content]]></msg>
+      
+  <!-- Msg 6: priority=6, OHI > 48 chars (will be trimmed) -->
+      
+  <msg idx="6"><![CDATA[[CTSW106-6] BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB | OHI Content]]></msg>
+    
+  <config key="amhs_recipients">VVTSYMYX</config>
+</case>

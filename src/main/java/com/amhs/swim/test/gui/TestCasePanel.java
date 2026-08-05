@@ -52,6 +52,8 @@ public class TestCasePanel extends JPanel {
     
     // Config Panel (Left)
     private JPanel configFormPanel;
+    private JPanel filePayloadFormPanel;
+    private JPanel filePayloadPanel;
     private Map<String, javax.swing.text.JTextComponent> configFields = new java.util.LinkedHashMap<>();
     private JTextField priorityField;
     private JComboBox<String> contentTypeCombo;
@@ -216,6 +218,23 @@ public class TestCasePanel extends JPanel {
             new EmptyBorder(10, 10, 10, 10)
         ));
         
+        filePayloadFormPanel = new JPanel();
+        filePayloadFormPanel.setBackground(bgPanel);
+        filePayloadFormPanel.setLayout(new GridBagLayout());
+        filePayloadFormPanel.setBorder(new CompoundBorder(
+            new MatteBorder(1, 0, 0, 0, clrSeparator),
+            new EmptyBorder(10, 10, 10, 10)
+        ));
+        
+        filePayloadPanel = new JPanel(new BorderLayout());
+        filePayloadPanel.setBackground(bgPanel);
+        JLabel lblFileConfig = new JLabel("  File Payload Configuration");
+        lblFileConfig.setForeground(clrAccent);
+        lblFileConfig.setBorder(new EmptyBorder(5,0,5,0));
+        filePayloadPanel.add(lblFileConfig, BorderLayout.NORTH);
+        filePayloadPanel.add(filePayloadFormPanel, BorderLayout.CENTER);
+        filePayloadPanel.setVisible(false);
+        
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(5, 5, 5, 5);
         gbc.fill = GridBagConstraints.HORIZONTAL;
@@ -332,7 +351,13 @@ public class TestCasePanel extends JPanel {
         configFormPanel.add(queueField, gbc);
         row++;
         
-        JScrollPane configScroll = new JScrollPane(configFormPanel);
+        JPanel formsContainer = new JPanel();
+        formsContainer.setLayout(new BoxLayout(formsContainer, BoxLayout.Y_AXIS));
+        formsContainer.setBackground(bgPanel);
+        formsContainer.add(configFormPanel);
+        formsContainer.add(filePayloadPanel);
+
+        JScrollPane configScroll = new JScrollPane(formsContainer);
         configScroll.setBorder(new MatteBorder(1, 1, 1, 1, clrSeparator));
         
         JPanel actionPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
@@ -518,6 +543,12 @@ public class TestCasePanel extends JPanel {
         while (configFormPanel.getComponentCount() > BASELINE) {
             configFormPanel.remove(configFormPanel.getComponentCount() - 1);
         }
+        if (filePayloadFormPanel != null) {
+            filePayloadFormPanel.removeAll();
+        }
+        if (filePayloadPanel != null) {
+            filePayloadPanel.setVisible(false);
+        }
     }
 
     public void onMessageSelected(TestMessage msg) {
@@ -563,13 +594,10 @@ public class TestCasePanel extends JPanel {
         // executeSingle methods read from these exact inputKey names.
         java.util.List<String[]> fieldSpecs = buildExtraFieldSpecs(caseId, mIdx, cfgMgr);
 
-        // Populate the standard AMHS RECIPIENTS field from config if applicable
-        String configDefault = cfgMgr.getPayload(caseId, mIdx);
-        if (configDefault == null) configDefault = msg.getDefaultData();
-        if (configDefault == null) configDefault = "";
-        // Only auto-fill recipients field if not a multi-address case (CTSW112)
+        // Load the standard AMHS recipient from the current case XML. CTSW112
+        // manages its recipient list through its dedicated address-file inputs.
         if (!caseId.equals("CTSW112")) {
-            amhsRecipientsField.setText(""); // cleared; user fills via Tool Settings / prior session
+            amhsRecipientsField.setText(cfgMgr.getConfig(caseId, "amhs_recipients", ""));
         }
 
         // Clear and rebuild dynamic extra fields
@@ -580,63 +608,40 @@ public class TestCasePanel extends JPanel {
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.anchor = GridBagConstraints.WEST;
         int row = 7; // rows 0-6 are the 7 standard fields
-
+        
+        java.util.List<String[]> textSpecs = new java.util.ArrayList<>();
+        java.util.List<String[]> fileSpecs = new java.util.ArrayList<>();
         for (String[] spec : fieldSpecs) {
-            String key   = spec[0];
-            String label = spec[1];
-            String defVal = spec[2];
-
-            gbc.gridy = row;
-            gbc.gridx = 0; gbc.weightx = 0;
-            configFormPanel.add(new JLabel(label + ":"), gbc);
-
-            gbc.gridx = 1; gbc.weightx = 1.0;
-            // Determine if this field holds a file path (not inline text content).
-            // File-path fields show only the basename in the text box but expose
-            // the full path via tooltip and inputs map, preventing panel overflow.
+            String key = spec[0];
             boolean isFilePath = key.toUpperCase().contains("FILE")
                               || key.toUpperCase().contains("BIN")
                               || key.toUpperCase().contains("ADDRESS")
                               || key.toUpperCase().contains("PATH");
-
-            // For file-path fields: the stored/sent value is always the full path.
-            // Display value: basename only (avoids horizontal overflow in the narrow field).
-            String displayVal = defVal;
-            if (isFilePath && defVal != null && (defVal.contains("/") || defVal.contains("\\"))) {
-                int lastSep = Math.max(defVal.lastIndexOf('/'), defVal.lastIndexOf('\\'));
-                displayVal = defVal.substring(lastSep + 1);
-            }
-
-            javax.swing.text.JTextComponent tf;
-            if (key.toLowerCase().contains("payload")) {
-                JTextArea ta = new JTextArea(displayVal, 10, 40);
-                ta.setLineWrap(true);
-                ta.setWrapStyleWord(true);
-                tf = ta;
-                if (isFilePath && !defVal.equals(displayVal)) {
-                    tf.setToolTipText("Full path: " + defVal);
-                    tf.putClientProperty("fullPath", defVal);
-                }
-                configFormPanel.add(new JScrollPane(ta), gbc);
+            if (isFilePath) {
+                fileSpecs.add(spec);
             } else {
-                JTextField jtf = new JTextField(displayVal);
-                tf = jtf;
-                if (isFilePath && !defVal.equals(displayVal)) {
-                    tf.setToolTipText("Full path: " + defVal);
-                    tf.putClientProperty("fullPath", defVal);
-                }
-                configFormPanel.add(tf, gbc);
+                textSpecs.add(spec);
             }
-            tf.setEditable(true);
-            configFields.put(key, tf);
+        }
 
-            gbc.gridx = 2; gbc.weightx = 0;
-            JButton btnUpload = new JButton("Upload");
-            final String fKey = key;
-            btnUpload.addActionListener(e -> doUploadField(fKey));
-            configFormPanel.add(btnUpload, gbc);
+        if (!textSpecs.isEmpty()) {
+            for (String[] spec : textSpecs) {
+                row = renderFieldSpec(spec, row, gbc, configFormPanel);
+            }
+        }
 
-            row++;
+        if (!fileSpecs.isEmpty()) {
+            filePayloadPanel.setVisible(true);
+            int fileRow = 0;
+            GridBagConstraints gbcFile = new GridBagConstraints();
+            gbcFile.insets = new Insets(5, 5, 5, 5);
+            gbcFile.fill = GridBagConstraints.HORIZONTAL;
+            gbcFile.anchor = GridBagConstraints.WEST;
+            for (String[] spec : fileSpecs) {
+                fileRow = renderFieldSpec(spec, fileRow, gbcFile, filePayloadFormPanel);
+            }
+            filePayloadFormPanel.revalidate();
+            filePayloadFormPanel.repaint();
         }
 
         configFormPanel.revalidate();
@@ -667,6 +672,72 @@ public class TestCasePanel extends JPanel {
         }
         updateUIFlags();
     }
+    
+    private int renderFieldSpec(String[] spec, int row, GridBagConstraints gbc, JPanel targetPanel) {
+        String key   = spec[0];
+        String label = spec[1];
+        String defVal = spec[2];
+
+        gbc.gridy = row;
+        gbc.gridx = 0; gbc.weightx = 0;
+        targetPanel.add(new JLabel(label + ":"), gbc);
+
+        gbc.gridx = 1; gbc.weightx = 1.0;
+        // Determine if this field holds a file path (not inline text content).
+        // File-path fields show only the basename in the text box but expose
+        // the full path via tooltip and inputs map, preventing panel overflow.
+        boolean isFilePath = key.toUpperCase().contains("FILE")
+                          || key.toUpperCase().contains("BIN")
+                          || key.toUpperCase().contains("ADDRESS")
+                          || key.toUpperCase().contains("PATH");
+
+        // For file-path fields: the stored/sent value is always the full path.
+        // Display value: basename only (avoids horizontal overflow in the narrow field).
+        String displayVal = defVal;
+        if (isFilePath && defVal != null && (defVal.contains("/") || defVal.contains("\\"))) {
+            int lastSep = Math.max(defVal.lastIndexOf('/'), defVal.lastIndexOf('\\'));
+            displayVal = defVal.substring(lastSep + 1);
+        }
+
+        javax.swing.text.JTextComponent tf;
+        if (key.toLowerCase().contains("payload") && !isFilePath) {
+            JTextArea ta = new JTextArea(displayVal, 10, 40);
+            ta.setLineWrap(true);
+            ta.setWrapStyleWord(true);
+            tf = ta;
+            targetPanel.add(new JScrollPane(ta), gbc);
+        } else {
+            JTextField jtf = new JTextField(displayVal);
+            tf = jtf;
+            if (isFilePath && !defVal.equals(displayVal)) {
+                tf.setToolTipText("Full path: " + defVal);
+                tf.putClientProperty("fullPath", defVal);
+            }
+            targetPanel.add(tf, gbc);
+        }
+        tf.setEditable(true);
+        configFields.put(key, tf);
+
+        gbc.gridx = 2; gbc.weightx = 0;
+        JButton btnUpload = new JButton("Upload");
+        final String fKey = key;
+        btnUpload.addActionListener(e -> doUploadField(fKey));
+        targetPanel.add(btnUpload, gbc);
+
+        return row + 1;
+    }
+
+    /**
+     * Generates a consistent IPM ID default value that matches the pattern used
+     * by SwimToAmhsTests.executeSingle — reads ipm_id_pattern from CaseConfigManager
+     * (defaulting to "IPM.GW.{ts}") and substitutes the current timestamp.
+     *
+     * This ensures the UI field and the wire value are always in the same format.
+     */
+    private String defaultIpmId(String caseId, CaseConfigManager cfgMgr) {
+        String pattern = cfgMgr.getConfig(caseId, "ipm_id_pattern", "IPM.GW.{ts}");
+        return pattern.replace("{ts}", String.valueOf(System.currentTimeMillis()));
+    }
 
     /**
      * Returns the list of extra config fields for a given case/message.
@@ -683,9 +754,14 @@ public class TestCasePanel extends JPanel {
         switch (caseId) {
             // ── CTSW101 ──────────────────────────────────────────────────────────
             case "CTSW101": {
-                specs.add(new String[]{"payload", "TEXT PAYLOAD", raw});
-                specs.add(new String[]{"amhs_ipm_id", "IPM ID", "IPM-" + System.currentTimeMillis()});
-                specs.add(new String[]{"amhs_registered_identifier", "REG. ID", "REG-1"});
+                if (mIdx == 2) {
+                    specs.add(new String[]{"binFile", "BINARY FILE PATH", raw});
+                } else {
+                    specs.add(new String[]{"payload", "TEXT PAYLOAD", raw});
+                }
+                specs.add(new String[]{"amhs_ipm_id", "IPM ID", defaultIpmId(caseId, cfgMgr)});
+                String regPattern101 = cfgMgr.getConfig(caseId, "reg_id_pattern", "REG.GW.{idx}");
+                specs.add(new String[]{"amhs_registered_identifier", "REG. ID", regPattern101.replace("{idx}", String.valueOf(mIdx))});
                 specs.add(new String[]{"amhs_user_visible_string", "USER VISIBLE STRING", mIdx == 1 ? "Standard Text Message" : "Standard Binary Message"});
                 break;
             }
@@ -695,6 +771,9 @@ public class TestCasePanel extends JPanel {
                     // Parse pipe: filePath|recip_11 (only msg 11 has second segment)
                     String[] parts = raw.split("\\|", 2);
                     String defPath = parts[0].trim();
+                    if (defPath.isEmpty() && mIdx != 10) {
+                        defPath = cfgMgr.getConfig("CTSW102", "binary_file_path", "materials/sample.pdf");
+                    }
                     specs.add(new String[]{"binPayload_" + mIdx, "BINARY FILE (msg " + mIdx + ")", defPath});
                     if (mIdx == 11) {
                         String defRecip = parts.length > 1 ? parts[1].trim() : "LONGADDRESSXXXXX";
@@ -725,8 +804,9 @@ public class TestCasePanel extends JPanel {
                 else if (mIdx == 5 || mIdx == 6) sl = "content-based";
                 else if (mIdx == 7 || mIdx == 8) sl = "recipient-based";
                 specs.add(new String[]{"amhs_service_level", "AMHS SERVICE LEVEL", sl});
-                specs.add(new String[]{"amhs_ipm_id", "IPM ID", "IPM-" + System.currentTimeMillis()});
-                specs.add(new String[]{"amhs_registered_identifier", "REG. ID", "REG-1"});
+                specs.add(new String[]{"amhs_ipm_id", "IPM ID", defaultIpmId(caseId, cfgMgr)});
+                String regPattern103 = cfgMgr.getConfig(caseId, "reg_id_pattern", "REG.GW.{idx}");
+                specs.add(new String[]{"amhs_registered_identifier", "REG. ID", regPattern103.replace("{idx}", String.valueOf(mIdx))});
                 specs.add(new String[]{"amhs_user_visible_string", "USER VISIBLE STRING", "Service Level Test"});
                 break;
             }
@@ -751,8 +831,9 @@ public class TestCasePanel extends JPanel {
             case "CTSW105": {
                 specs.add(new String[]{"p" + mIdx, "TEXT PAYLOAD", raw});
                 specs.add(new String[]{"amhs_ats_ft", "AMHS ATS FILING TIME (DDhhmm)", mIdx == 2 ? "250102" : ""});
-                specs.add(new String[]{"amhs_ipm_id", "IPM ID", "IPM-" + System.currentTimeMillis()});
-                specs.add(new String[]{"amhs_registered_identifier", "REG. ID", "REG-1"});
+                specs.add(new String[]{"amhs_ipm_id", "IPM ID", defaultIpmId(caseId, cfgMgr)});
+                String regPattern105 = cfgMgr.getConfig(caseId, "reg_id_pattern", "REG.GW.{idx}");
+                specs.add(new String[]{"amhs_registered_identifier", "REG. ID", regPattern105.replace("{idx}", String.valueOf(mIdx))});
                 specs.add(new String[]{"amhs_user_visible_string", "USER VISIBLE STRING", "Filing Time Test"});
                 break;
             }
@@ -764,8 +845,9 @@ public class TestCasePanel extends JPanel {
                 String defBody = parts.length > 1 ? parts[1].trim() : "OHI Content";
                 specs.add(new String[]{"amhs_ats_ohi_" + mIdx, "OHI (amhs_ats_ohi, msg " + mIdx + ")", defOhi});
                 specs.add(new String[]{"body_" + mIdx,         "BODY PAYLOAD",                         defBody});
-                specs.add(new String[]{"amhs_ipm_id", "IPM ID", "IPM-" + System.currentTimeMillis()});
-                specs.add(new String[]{"amhs_registered_identifier", "REG. ID", "REG-1"});
+                specs.add(new String[]{"amhs_ipm_id", "IPM ID", defaultIpmId(caseId, cfgMgr)});
+                String regPattern106 = cfgMgr.getConfig(caseId, "reg_id_pattern", "REG.GW.{idx}");
+                specs.add(new String[]{"amhs_registered_identifier", "REG. ID", regPattern106.replace("{idx}", String.valueOf(mIdx))});
                 specs.add(new String[]{"amhs_user_visible_string", "USER VISIBLE STRING", "OHI Data Test"});
                 break;
             }
@@ -840,8 +922,9 @@ public class TestCasePanel extends JPanel {
                 String expectedCount = (mIdx == 1) ? "512" : "513";
                 specs.add(new String[]{fileKey, "ADDRESS FILE (" + expectedCount + " lines, one address per line)", raw});
                 specs.add(new String[]{bodyKey, "MESSAGE BODY", "Msg " + (mIdx == 1 ? "512" : "513")});
-                specs.add(new String[]{"amhs_ipm_id", "IPM ID", "IPM-" + System.currentTimeMillis()});
-                specs.add(new String[]{"amhs_registered_identifier", "REG. ID", "REG-1"});
+                specs.add(new String[]{"amhs_ipm_id", "IPM ID", defaultIpmId(caseId, cfgMgr)});
+                String regPattern112 = cfgMgr.getConfig(caseId, "reg_id_pattern", "REG.GW.{idx}");
+                specs.add(new String[]{"amhs_registered_identifier", "REG. ID", regPattern112.replace("{idx}", String.valueOf(mIdx))});
                 specs.add(new String[]{"amhs_user_visible_string", "USER VISIBLE STRING", "Multiple Recipients Test"});
                 break;
             }
@@ -855,6 +938,7 @@ public class TestCasePanel extends JPanel {
                 specs.add(new String[]{"p" + mIdx, "TEXT PAYLOAD", defPayload});
                 specs.add(new String[]{"amhs_notification_request", "NOTIF REQUEST (rn,nrn per §4.4.7.3)", defNotif});
                 specs.add(new String[]{"amqp_reply_to", "REPLY-TO (AMQP address for notifications)", "TECHNICAL.RESPONSE.QUEUE"});
+                specs.add(new String[]{"amhs_ipm_id", "IPM ID", defaultIpmId(caseId, cfgMgr)});
                 break;
             }
             // ── CTSW114 ──────────────────────────────────────────────────────────
@@ -863,13 +947,14 @@ public class TestCasePanel extends JPanel {
             // amhs_notification_request — must include 'nrn' so AMHS generates NDR on delete (§4.4.7.3)
             case "CTSW114": {
                 String[] parts = raw.split("\\|", 3);
-                String defPayload = parts.length > 0 ? parts[0].trim() : "CTSW114 NDR Trigger";
+                String defPayload = parts.length > 0 ? parts[0].trim() : "NDR Trigger";
                 String defOrig    = parts.length > 1 ? parts[1].trim() : "XXXXXXXX";
                 String defNotif   = parts.length > 2 ? parts[2].trim() : "nrn";
                 specs.add(new String[]{"p1",                            "TEXT PAYLOAD",                                      defPayload});
                 specs.add(new String[]{"amhs_originator",               "AMHS ORIGINATOR (NDR return address, EUR Doc §4.4.1.3)", defOrig});
                 specs.add(new String[]{"amhs_notification_request_114", "NOTIF REQUEST (must include 'nrn' per §4.4.7.3)",          defNotif});
                 specs.add(new String[]{"amqp_reply_to",                 "REPLY-TO (AMQP address for NDR delivery)",                "TECHNICAL.RESPONSE.QUEUE"});
+                specs.add(new String[]{"amhs_ipm_id", "IPM ID", defaultIpmId(caseId, cfgMgr)});
                 break;
             }
             // ── CTSW115 ──────────────────────────────────────────────────────────
@@ -902,8 +987,9 @@ public class TestCasePanel extends JPanel {
                 specs.add(new String[]{"swim_compression", "SWIM COMPRESSION (e.g. gzip)", mIdx == 1 ? "gzip" : ""});
                 specs.add(new String[]{"amhs_ftbp_file_name", "FTBP FILE NAME", "sample.pdf"});
                 specs.add(new String[]{"amhs_bodypart_type", "BODY PART TYPE", "file-transfer-body-part"});
-                specs.add(new String[]{"amhs_ipm_id", "IPM ID", "IPM-" + System.currentTimeMillis()});
-                specs.add(new String[]{"amhs_registered_identifier", "REG. ID", "REG-1"});
+                specs.add(new String[]{"amhs_ipm_id", "IPM ID", defaultIpmId(caseId, cfgMgr)});
+                String regPattern116 = cfgMgr.getConfig(caseId, "reg_id_pattern", "REG.GW.{idx}");
+                specs.add(new String[]{"amhs_registered_identifier", "REG. ID", regPattern116.replace("{idx}", String.valueOf(mIdx))});
                 break;
             }
             default:
@@ -913,6 +999,26 @@ public class TestCasePanel extends JPanel {
                 }
                 break;
         }
+        
+        // Ensure standard ICAO attribute input fields are present for ALL test cases
+        boolean hasIpm = false, hasReg = false, hasUvs = false;
+        for (String[] s : specs) {
+            if ("amhs_ipm_id".equals(s[0])) hasIpm = true;
+            if ("amhs_registered_identifier".equals(s[0])) hasReg = true;
+            if ("amhs_user_visible_string".equals(s[0])) hasUvs = true;
+        }
+        
+        if (!hasIpm) {
+            specs.add(new String[]{"amhs_ipm_id", "IPM ID", defaultIpmId(caseId, cfgMgr)});
+        }
+        if (!hasReg) {
+            String regPattern = cfgMgr.getConfig(caseId, "reg_id_pattern", "REG.GW.{idx}");
+            specs.add(new String[]{"amhs_registered_identifier", "REG. ID", regPattern.replace("{idx}", String.valueOf(mIdx))});
+        }
+        if (!hasUvs) {
+            specs.add(new String[]{"amhs_user_visible_string", "USER VISIBLE STRING", ""});
+        }
+
         return specs;
     }
     
@@ -1185,10 +1291,13 @@ public class TestCasePanel extends JPanel {
                 }
             }
             
-            // Fix gateway duplicate rejection for auto sends
+            // Fix gateway duplicate rejection for auto sends — use same IPM.GW.{ts} format for consistency
             if (isAutoSend && !outVal.isEmpty()) {
                 if (key.equalsIgnoreCase("amhs_ipm_id")) {
-                    outVal = "IPM-AUTO-" + System.currentTimeMillis() + "-" + rng.nextInt(10000);
+                    String currentCaseId = currentCase != null ? currentCase.getTestCaseId() : "GW";
+                    CaseConfigManager autoCfg = CaseConfigManager.getInstance();
+                    String autoPattern = autoCfg.getConfig(currentCaseId, "ipm_id_pattern", "IPM.GW.{ts}");
+                    outVal = autoPattern.replace("{ts}", System.currentTimeMillis() + "." + rng.nextInt(10000));
                 } else if (key.equalsIgnoreCase("amqp_message_id")) {
                     outVal = "MSG-AUTO-" + System.currentTimeMillis() + "-" + rng.nextInt(10000);
                 }

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<case id="CTSW116">
+      
+  <!-- Msg 1: Binary file with FTBP attributes (no compression) -->
+      
+  <msg body-type="DATA" content-type="application/octet-stream" idx="1"><![CDATA[materials/sample.pdf]]></msg>
+      
+  <!-- Msg 2: Same binary file with GZIP compression (IUT must decompress) -->
+      
+  <msg body-type="DATA" content-type="application/octet-stream" idx="2"><![CDATA[materials/sample.pdf]]></msg>
+      
+  <!-- IPM-ID and Registered-ID patterns -->
+      
+  <config key="ipm_id_pattern"><![CDATA[IPM.CTSW116.{ts}]]></config>
+      
+  <config key="reg_id_pattern"><![CDATA[REG.CTSW116]]></config>
+    
+  <config key="binary_file_path"><![CDATA[materials/sample.pdf]]></config>
+  <config key="amhs_recipients">VVTSYMYX</config>
+</case>

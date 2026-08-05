@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<case id="CTSW113">
+      
+  <!-- Msg 1: NRN expected (delete message in AMHS Tool to trigger) -->
+      
+  <msg idx="1"><![CDATA[[CTSW113-1] Notification Request NRN Expected]]></msg>
+      
+  <!-- Msg 2: RN expected (accept message in AMHS Tool to trigger) -->
+      
+  <msg idx="2"><![CDATA[[CTSW113-2] Notification Request RN Expected]]></msg>
+      
+  <!-- IPM-ID and Registered-ID patterns -->
+      
+  <config key="ipm_id_pattern"><![CDATA[IPM.CTSW113.{ts}]]></config>
+      
+  <config key="reg_id_pattern"><![CDATA[REG.CTSW113]]></config>
+    
+  <config key="amhs_recipients">VVTSYMYX</config>
+</case>

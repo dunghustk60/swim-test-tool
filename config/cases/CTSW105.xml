@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<case id="CTSW105">
+      
+  <!-- Msg 1: Empty amhs_ats_ft → use creation-time in DDhhmm format -->
+      
+  <msg idx="1"><![CDATA[[CTSW105-1] Filing Time Default from Creation-Time]]></msg>
+      
+  <!-- Msg 2: Explicit amhs_ats_ft='250102' -->
+      
+  <msg idx="2"><![CDATA[[CTSW105-2] Filing Time Explicit 250102]]></msg>
+    
+  <config key="amhs_recipients">VVTSYMYX</config>
+</case>

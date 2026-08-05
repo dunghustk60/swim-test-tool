@@ -15,9 +15,15 @@
   <!-- Basic text/binary payload validation per EUR Doc 047 §4.5.2.2, §4.5.3.2 -->
   <case id="CTSW101">
     <!-- Msg 1: Text message with AMQP priority default (4) → DD/Normal in AMHS -->
-    <msg idx="1"><![CDATA[[CTSW101-1] Test message priority-4 content text]]></msg>
+    <msg idx="1"
+         description="Text message | priority=4 | content-type: text/plain;charset=utf-8 | body: amqp-value"
+         mandatory="true" optional="false" input-key="p1" file="false"
+         content-type="text/plain;charset=utf-8" body-type="amqp-value"><![CDATA[[CTSW101-1] Test message priority-4 content text]]></msg>
     <!-- Msg 2: Binary message (PDF file path) - loaded from materials directory -->
-    <msg idx="2"><![CDATA[materials/sample.pdf]]></msg>
+    <msg idx="2"
+         description="Binary message | priority=4 | content-type: application/octet-stream | body: data"
+         mandatory="true" optional="false" input-key="binFile" file="true"
+         content-type="application/octet-stream" body-type="data"><![CDATA[materials/sample.pdf]]></msg>
     <!-- IPM-ID and Registered-ID patterns per EUR Doc 047 §4.5.4.27-4.5.4.31 -->
     <config key="ipm_id_pattern"><![CDATA[IPM.CTSW101.{ts}]]></config>
     <config key="reg_id_pattern"><![CDATA[REG.CTSW101.{idx}]]></config>

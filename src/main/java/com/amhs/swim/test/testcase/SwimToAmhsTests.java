@@ -153,6 +153,18 @@ public class SwimToAmhsTests {
         return (v != null && !v.trim().isEmpty()) ? v.trim() : defaultValue;
     }
 
+    private String getMessageMetadata(CaseConfigManager configMgr, String caseId, int messageIndex,
+                                      String key, String defaultValue) {
+        String value = configMgr.getMetadata(caseId, messageIndex, key);
+        return (value == null || value.trim().isEmpty()) ? defaultValue : value;
+    }
+
+    private boolean getMessageBooleanMetadata(CaseConfigManager configMgr, String caseId, int messageIndex,
+                                              String key, boolean defaultValue) {
+        String value = configMgr.getMetadata(caseId, messageIndex, key);
+        return (value == null || value.trim().isEmpty()) ? defaultValue : Boolean.parseBoolean(value);
+    }
+
     // ─────────────────────────────────────────────────────────────────────────
     // CTSW101
     // ─────────────────────────────────────────────────────────────────────────
@@ -190,16 +202,25 @@ public class SwimToAmhsTests {
         @Override
         public List<TestMessage> getMessages() {
             CaseConfigManager configMgr = CaseConfigManager.getInstance();
-            
-            // Load payloads from default config (config/default_case_payloads.xml)
-            // ICAO EUR Doc 047 Appendix A compliant defaults
+
+            // The XML supplies the complete message definitions.  Fallback values keep
+            // existing installations usable when an older config file is present.
             return listOf(
                 new TestMessage(1,
-                    "Text message | priority=4 | content-type: text/plain;charset=utf-8 | body: amqp-value",
-                    configMgr.getPayload("CTSW101", 1), true, false, "p1"),
+                    getMessageMetadata(configMgr, "CTSW101", 1, "description",
+                        "Text message | priority=4 | content-type: text/plain;charset=utf-8 | body: amqp-value"),
+                    configMgr.getPayload("CTSW101", 1),
+                    getMessageBooleanMetadata(configMgr, "CTSW101", 1, "mandatory", true),
+                    getMessageBooleanMetadata(configMgr, "CTSW101", 1, "optional", false),
+                    getMessageMetadata(configMgr, "CTSW101", 1, "input-key", "p1")),
                 new TestMessage(2,
-                    "Binary message | priority=4 | content-type: application/octet-stream | body: data",
-                    configMgr.getPayload("CTSW101", 2), true, false, "binFile", true)
+                    getMessageMetadata(configMgr, "CTSW101", 2, "description",
+                        "Binary message | priority=4 | content-type: application/octet-stream | body: data"),
+                    configMgr.getPayload("CTSW101", 2),
+                    getMessageBooleanMetadata(configMgr, "CTSW101", 2, "mandatory", true),
+                    getMessageBooleanMetadata(configMgr, "CTSW101", 2, "optional", false),
+                    getMessageMetadata(configMgr, "CTSW101", 2, "input-key", "binFile"),
+                    getMessageBooleanMetadata(configMgr, "CTSW101", 2, "file", true))
             );
         }
 
@@ -220,11 +241,15 @@ public class SwimToAmhsTests {
                     p.setBodyType(SwimDriver.AMQPProperties.BodyType.AMQP_VALUE);
                     
                     // Mandatory properties per EUR Doc 047 Appendix A
-                    // Load IPM-ID pattern from config, replace {ts} with timestamp
-                    String ipmPattern = configMgr.getConfig("CTSW101", "ipm_id_pattern", "IPM.CTSW101.{ts}");
-                    p.setIpmId(ipmPattern.replace("{ts}", String.valueOf(System.currentTimeMillis())));
+                    // Prefer user-supplied amhs_ipm_id; fall back to XML pattern
+                    if (inputs != null && inputs.containsKey("amhs_ipm_id") && !inputs.get("amhs_ipm_id").isEmpty()) {
+                        p.setIpmId(inputs.get("amhs_ipm_id"));
+                    } else {
+                        String ipmPattern = configMgr.getConfig("CTSW101", "ipm_id_pattern", "IPM.GW.{ts}");
+                        p.setIpmId(ipmPattern.replace("{ts}", String.valueOf(System.currentTimeMillis())));
+                    }
                     // Load Registered-ID pattern, replace {idx} with message index
-                    String regPattern = configMgr.getConfig("CTSW101", "reg_id_pattern", "REG.CTSW101.{idx}");
+                    String regPattern = configMgr.getConfig("CTSW101", "reg_id_pattern", "REG.GW.{idx}");
                     p.setRegisteredId(regPattern.replace("{idx}", "1"));
                     p.setUserVisibleStr("Standard Text Message");
                     
@@ -254,9 +279,14 @@ public class SwimToAmhsTests {
                     p.setBodyType(SwimDriver.AMQPProperties.BodyType.DATA);
                     
                     // Mandatory properties per EUR Doc 047 Appendix A
-                    String ipmPattern = configMgr.getConfig("CTSW101", "ipm_id_pattern", "IPM.CTSW101.{ts}");
-                    p.setIpmId(ipmPattern.replace("{ts}", String.valueOf(System.currentTimeMillis())));
-                    String regPattern = configMgr.getConfig("CTSW101", "reg_id_pattern", "REG.CTSW101.{idx}");
+                    // Prefer user-supplied amhs_ipm_id; fall back to XML pattern
+                    if (inputs != null && inputs.containsKey("amhs_ipm_id") && !inputs.get("amhs_ipm_id").isEmpty()) {
+                        p.setIpmId(inputs.get("amhs_ipm_id"));
+                    } else {
+                        String ipmPattern = configMgr.getConfig("CTSW101", "ipm_id_pattern", "IPM.GW.{ts}");
+                        p.setIpmId(ipmPattern.replace("{ts}", String.valueOf(System.currentTimeMillis())));
+                    }
+                    String regPattern = configMgr.getConfig("CTSW101", "reg_id_pattern", "REG.GW.{idx}");
                     p.setRegisteredId(regPattern.replace("{idx}", "2"));
                     p.setUserVisibleStr("Standard Binary Message");
                     
@@ -364,7 +394,11 @@ public class SwimToAmhsTests {
                 String rawDefault = CaseConfigManager.getInstance().getPayload("CTSW102", idx);
                 String defaultPath = (rawDefault != null && rawDefault.contains("|"))
                     ? rawDefault.split("\\|", 2)[0].trim() : rawDefault;
-                String path = (inputs != null ? inputs.getOrDefault(key, defaultPath != null ? defaultPath : "src/main/resources/sample.pdf") : (defaultPath != null ? defaultPath : "src/main/resources/sample.pdf"));
+                String configuredPath = CaseConfigManager.getInstance()
+                    .getConfig("CTSW102", "binary_file_path", "materials/sample.pdf");
+                String selectedPath = defaultPath != null && !defaultPath.trim().isEmpty()
+                    ? defaultPath : configuredPath;
+                String path = inputs != null ? inputs.getOrDefault(key, selectedPath) : selectedPath;
                 if (path != null && !path.trim().isEmpty() && Files.exists(Paths.get(path))) {
                     payload = Files.readAllBytes(Paths.get(path));
                 } else {
@@ -558,14 +592,15 @@ public class SwimToAmhsTests {
                     p.setExtraProp("amhs_service_level","basic"); 
                     p.setAmqpPriority(priority); 
                     
-                    // Mandatory properties per EUR Doc 047 - loaded from config
-                    String ipmPattern = configMgr.getConfig("CTSW103", "ipm_id_pattern", "IPM.CTSW103.{ts}");
-                    String ipmId = ipmPattern.replace("{ts}", String.valueOf(System.currentTimeMillis())).replace("{idx}", "1");
-                    p.setIpmId(ipmId);
-                    
-                    String regPattern = configMgr.getConfig("CTSW103", "reg_id_pattern", "REG.CTSW103.{idx}");
-                    String regId = regPattern.replace("{ts}", String.valueOf(System.currentTimeMillis())).replace("{idx}", "1");
-                    p.setRegisteredId(regId);
+                    // Mandatory properties per EUR Doc 047 — prefer user-supplied amhs_ipm_id
+                    if (inputs != null && inputs.containsKey("amhs_ipm_id") && !inputs.get("amhs_ipm_id").isEmpty()) {
+                        p.setIpmId(inputs.get("amhs_ipm_id"));
+                    } else {
+                        String ipmPattern = configMgr.getConfig("CTSW103", "ipm_id_pattern", "IPM.GW.{ts}");
+                        p.setIpmId(ipmPattern.replace("{ts}", String.valueOf(System.currentTimeMillis())));
+                    }
+                    String regPattern = configMgr.getConfig("CTSW103", "reg_id_pattern", "REG.GW.{idx}");
+                    p.setRegisteredId(regPattern.replace("{idx}", "1"));
                     
                     p.setUserVisibleStr("Basic Mode Text Test");
 
@@ -591,14 +626,15 @@ public class SwimToAmhsTests {
                     p.setExtraProp("amhs_service_level","extended"); 
                     p.setAmqpPriority(priority); 
 
-                    // Mandatory properties per EUR Doc 047 - loaded from config
-                    String ipmPattern = configMgr.getConfig("CTSW103", "ipm_id_pattern", "IPM.CTSW103.{ts}");
-                    String ipmId = ipmPattern.replace("{ts}", String.valueOf(System.currentTimeMillis())).replace("{idx}", "3");
-                    p.setIpmId(ipmId);
-                    
-                    String regPattern = configMgr.getConfig("CTSW103", "reg_id_pattern", "REG.CTSW103.{idx}");
-                    String regId = regPattern.replace("{ts}", String.valueOf(System.currentTimeMillis())).replace("{idx}", "3");
-                    p.setRegisteredId(regId);
+                    // Mandatory properties per EUR Doc 047 — prefer user-supplied amhs_ipm_id
+                    if (inputs != null && inputs.containsKey("amhs_ipm_id") && !inputs.get("amhs_ipm_id").isEmpty()) {
+                        p.setIpmId(inputs.get("amhs_ipm_id"));
+                    } else {
+                        String ipmPattern = configMgr.getConfig("CTSW103", "ipm_id_pattern", "IPM.GW.{ts}");
+                        p.setIpmId(ipmPattern.replace("{ts}", String.valueOf(System.currentTimeMillis())));
+                    }
+                    String regPattern = configMgr.getConfig("CTSW103", "reg_id_pattern", "REG.GW.{idx}");
+                    p.setRegisteredId(regPattern.replace("{idx}", "3"));
                     
                     p.setUserVisibleStr("Extended Mode Text Test");
 
@@ -647,14 +683,15 @@ public class SwimToAmhsTests {
                     p.setExtraProp("amhs_service_level","recipient-based"); 
                     p.setAmqpPriority(priority); 
 
-                    // Mandatory properties per EUR Doc 047 - loaded from config
-                    String ipmPattern = configMgr.getConfig("CTSW103", "ipm_id_pattern", "IPM.CTSW103.{ts}");
-                    String ipmId = ipmPattern.replace("{ts}", String.valueOf(System.currentTimeMillis())).replace("{idx}", "7");
-                    p.setIpmId(ipmId);
-                    
-                    String regPattern = configMgr.getConfig("CTSW103", "reg_id_pattern", "REG.CTSW103.{idx}");
-                    String regId = regPattern.replace("{ts}", String.valueOf(System.currentTimeMillis())).replace("{idx}", "7");
-                    p.setRegisteredId(regId);
+                    // Mandatory properties per EUR Doc 047 — prefer user-supplied amhs_ipm_id
+                    if (inputs != null && inputs.containsKey("amhs_ipm_id") && !inputs.get("amhs_ipm_id").isEmpty()) {
+                        p.setIpmId(inputs.get("amhs_ipm_id"));
+                    } else {
+                        String ipmPattern = configMgr.getConfig("CTSW103", "ipm_id_pattern", "IPM.GW.{ts}");
+                        p.setIpmId(ipmPattern.replace("{ts}", String.valueOf(System.currentTimeMillis())));
+                    }
+                    String regPattern = configMgr.getConfig("CTSW103", "reg_id_pattern", "REG.GW.{idx}");
+                    p.setRegisteredId(regPattern.replace("{idx}", "7"));
                     
                     p.setUserVisibleStr("Mixed Recipients Test");
 
@@ -825,15 +862,16 @@ public class SwimToAmhsTests {
             SwimDriver.AMQPProperties p = new SwimDriver.AMQPProperties();
             p.setRecipients(r); p.setContentType("text/plain; charset=utf-8"); p.setBodyType(SwimDriver.AMQPProperties.BodyType.AMQP_VALUE);
             
-            // Mandatory properties per EUR Doc 047 - loaded from config
+            // Mandatory properties per EUR Doc 047 — prefer user-supplied amhs_ipm_id
             CaseConfigManager configMgrCTSW105 = CaseConfigManager.getInstance();
-            String ipmPattern105 = configMgrCTSW105.getConfig("CTSW105", "ipm_id_pattern", "IPM.CTSW105.{ts}");
-            String ipmId105 = ipmPattern105.replace("{ts}", String.valueOf(System.currentTimeMillis()));
-            p.setIpmId(ipmId105);
-            
-            String regPattern105 = configMgrCTSW105.getConfig("CTSW105", "reg_id_pattern", "REG.CTSW105");
-            String regId105 = regPattern105.replace("{ts}", String.valueOf(System.currentTimeMillis()));
-            p.setRegisteredId(regId105);
+            if (inputs != null && inputs.containsKey("amhs_ipm_id") && !inputs.get("amhs_ipm_id").isEmpty()) {
+                p.setIpmId(inputs.get("amhs_ipm_id"));
+            } else {
+                String ipmPattern105 = configMgrCTSW105.getConfig("CTSW105", "ipm_id_pattern", "IPM.GW.{ts}");
+                p.setIpmId(ipmPattern105.replace("{ts}", String.valueOf(System.currentTimeMillis())));
+            }
+            String regPattern105 = configMgrCTSW105.getConfig("CTSW105", "reg_id_pattern", "REG.GW.{idx}");
+            p.setRegisteredId(regPattern105.replace("{idx}", String.valueOf(idx)));
             
             p.setUserVisibleStr("Filing Time Test");
 
@@ -935,15 +973,16 @@ public class SwimToAmhsTests {
             p.setAmqpPriority(priority);
             p.setContentType("text/plain; charset=utf-8"); p.setBodyType(SwimDriver.AMQPProperties.BodyType.AMQP_VALUE);
 
-            // Mandatory properties per EUR Doc 047 - loaded from config
+            // Mandatory properties per EUR Doc 047 — prefer user-supplied amhs_ipm_id
             CaseConfigManager configMgrCTSW106 = CaseConfigManager.getInstance();
-            String ipmPattern106 = configMgrCTSW106.getConfig("CTSW106", "ipm_id_pattern", "IPM.CTSW106.{ts}");
-            String ipmId106 = ipmPattern106.replace("{ts}", String.valueOf(System.currentTimeMillis()));
-            p.setIpmId(ipmId106);
-            
-            String regPattern106 = configMgrCTSW106.getConfig("CTSW106", "reg_id_pattern", "REG.CTSW106");
-            String regId106 = regPattern106.replace("{ts}", String.valueOf(System.currentTimeMillis()));
-            p.setRegisteredId(regId106);
+            if (inputs != null && inputs.containsKey("amhs_ipm_id") && !inputs.get("amhs_ipm_id").isEmpty()) {
+                p.setIpmId(inputs.get("amhs_ipm_id"));
+            } else {
+                String ipmPattern106 = configMgrCTSW106.getConfig("CTSW106", "ipm_id_pattern", "IPM.GW.{ts}");
+                p.setIpmId(ipmPattern106.replace("{ts}", String.valueOf(System.currentTimeMillis())));
+            }
+            String regPattern106 = configMgrCTSW106.getConfig("CTSW106", "reg_id_pattern", "REG.GW.{idx}");
+            p.setRegisteredId(regPattern106.replace("{idx}", String.valueOf(idx)));
             
             p.setUserVisibleStr("OHI Data Test");
             p.setExtraProp("amhs_ats_ohi", ohi);
@@ -1540,15 +1579,16 @@ public class SwimToAmhsTests {
             p.setContentType("text/plain; charset=utf-8");
             p.setBodyType(SwimDriver.AMQPProperties.BodyType.AMQP_VALUE);
 
-            // Mandatory properties per EUR Doc 047 - loaded from config
+            // Mandatory properties per EUR Doc 047 — prefer user-supplied amhs_ipm_id
             CaseConfigManager configMgrCTSW112 = CaseConfigManager.getInstance();
-            String ipmPattern112 = configMgrCTSW112.getConfig("CTSW112", "ipm_id_pattern", "IPM.CTSW112.{ts}");
-            String ipmId112 = ipmPattern112.replace("{ts}", String.valueOf(System.currentTimeMillis()));
-            p.setIpmId(ipmId112);
-            
-            String regPattern112 = configMgrCTSW112.getConfig("CTSW112", "reg_id_pattern", "REG.CTSW112");
-            String regId112 = regPattern112.replace("{ts}", String.valueOf(System.currentTimeMillis()));
-            p.setRegisteredId(regId112);
+            if (inputs != null && inputs.containsKey("amhs_ipm_id") && !inputs.get("amhs_ipm_id").isEmpty()) {
+                p.setIpmId(inputs.get("amhs_ipm_id"));
+            } else {
+                String ipmPattern112 = configMgrCTSW112.getConfig("CTSW112", "ipm_id_pattern", "IPM.GW.{ts}");
+                p.setIpmId(ipmPattern112.replace("{ts}", String.valueOf(System.currentTimeMillis())));
+            }
+            String regPattern112 = configMgrCTSW112.getConfig("CTSW112", "reg_id_pattern", "REG.GW.{idx}");
+            p.setRegisteredId(regPattern112.replace("{idx}", String.valueOf(idx)));
             
             p.setUserVisibleStr("Multiple Recipients Test");
 
@@ -1759,14 +1799,15 @@ public class SwimToAmhsTests {
             // amqp_reply_to — Optional but recommended for NDR routing
             p.setReplyTo(getInput(inputs, "amqp_reply_to", "TECHNICAL.RESPONSE.QUEUE"));
             
-            // Mandatory properties per EUR Doc 047 - loaded from config
-            String ipmPattern114 = configMgr.getConfig("CTSW114", "ipm_id_pattern", "IPM.CTSW114.{ts}");
-            String ipmId114 = ipmPattern114.replace("{ts}", String.valueOf(System.currentTimeMillis()));
-            p.setIpmId(ipmId114);
-            
-            String regPattern114 = configMgr.getConfig("CTSW114", "reg_id_pattern", "REG.CTSW114");
-            String regId114 = regPattern114.replace("{ts}", String.valueOf(System.currentTimeMillis()));
-            p.setRegisteredId(regId114);
+            // Mandatory properties per EUR Doc 047 — prefer user-supplied amhs_ipm_id
+            if (inputs != null && inputs.containsKey("amhs_ipm_id") && !inputs.get("amhs_ipm_id").isEmpty()) {
+                p.setIpmId(inputs.get("amhs_ipm_id"));
+            } else {
+                String ipmPattern114 = configMgr.getConfig("CTSW114", "ipm_id_pattern", "IPM.GW.{ts}");
+                p.setIpmId(ipmPattern114.replace("{ts}", String.valueOf(System.currentTimeMillis())));
+            }
+            String regPattern114 = configMgr.getConfig("CTSW114", "reg_id_pattern", "REG.GW");
+            p.setRegisteredId(regPattern114);
             
             p.setUserVisibleStr("NDR Trigger Message");
 
@@ -1942,11 +1983,15 @@ public class SwimToAmhsTests {
             p.setBodyType(SwimDriver.AMQPProperties.BodyType.DATA);
             
             // Mandatory properties per EUR Doc 047 Appendix A
-            // Load IPM-ID pattern from config, replace {ts} with timestamp
-            String ipmPattern = configMgr.getConfig("CTSW116", "ipm_id_pattern", "IPM.CTSW116.{ts}");
-            p.setIpmId(ipmPattern.replace("{ts}", String.valueOf(System.currentTimeMillis())));
+            // Prefer user-supplied amhs_ipm_id; fall back to XML pattern
+            if (inputs != null && inputs.containsKey("amhs_ipm_id") && !inputs.get("amhs_ipm_id").isEmpty()) {
+                p.setIpmId(inputs.get("amhs_ipm_id"));
+            } else {
+                String ipmPattern = configMgr.getConfig("CTSW116", "ipm_id_pattern", "IPM.GW.{ts}");
+                p.setIpmId(ipmPattern.replace("{ts}", String.valueOf(System.currentTimeMillis())));
+            }
             // Load Registered-ID pattern, replace {idx} with message index
-            String regPattern = configMgr.getConfig("CTSW116", "reg_id_pattern", "REG.CTSW116.{idx}");
+            String regPattern = configMgr.getConfig("CTSW116", "reg_id_pattern", "REG.GW.{idx}");
             p.setRegisteredId(regPattern.replace("{idx}", String.valueOf(idx)));
             
             p.setExtraProp("amhs_ftbp_last_mod", lastMod);

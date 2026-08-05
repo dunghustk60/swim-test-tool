@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<case id="CTSW109">
+      
+  <!-- Msg 1: Unknown originator (gateway uses configured default) -->
+      
+  <msg idx="1"><![CDATA[[CTSW109-1] UNKNOWN1 | Unknown Originator Payload]]></msg>
+    
+  <config key="amhs_recipients">VVTSYMYX</config>
+</case>

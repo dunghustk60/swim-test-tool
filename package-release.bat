@@ -37,6 +37,14 @@ copy /Y "run-verifier.bat"               "%RELEASE_DIR%\"
 copy /Y "config\test.properties"         "%RELEASE_DIR%\config\"
 copy /Y "config\default_case_payloads.xml" "%RELEASE_DIR%\config\"
 
+:: Portable dependencies (Java, Maven)
+if exist "jre" xcopy /E /I /Y "jre" "%RELEASE_DIR%\jre"
+if exist "jdk" xcopy /E /I /Y "jdk" "%RELEASE_DIR%\jdk"
+if exist "java" xcopy /E /I /Y "java" "%RELEASE_DIR%\java"
+if exist "maven" xcopy /E /I /Y "maven" "%RELEASE_DIR%\maven"
+if exist "mvn" xcopy /E /I /Y "mvn" "%RELEASE_DIR%\mvn"
+if exist ".m2" xcopy /E /I /Y ".m2" "%RELEASE_DIR%\.m2"
+
 :: Reference materials (optional)
 if exist "materials" xcopy /E /I /Y "materials" "%RELEASE_DIR%\materials"
 

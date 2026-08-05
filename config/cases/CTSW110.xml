@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<case id="CTSW110">
+      
+  <!-- Msg 1: octet-stream + empty data + empty amqp-value → REJECT -->
+      
+  <msg idx="1"/>
+      
+  <!-- Msg 2: text/utf-8 + data present + amqp-value empty → REJECT -->
+      
+  <msg idx="2"><![CDATA[materials/sample.pdf]]></msg>
+      
+  <!-- Msg 3: octet-stream + data present + amqp-value empty → ACCEPT -->
+      
+  <msg idx="3"><![CDATA[materials/sample.pdf]]></msg>
+      
+  <!-- Msg 4: text/utf-8 + amqp-value present + data empty → ACCEPT -->
+      
+  <msg idx="4"><![CDATA[[CTSW110-4] Content-Type Text Payload]]></msg>
+      
+  <!-- Msg 5 (opt): text/utf-16 → REJECT -->
+      
+  <msg idx="5"><![CDATA[[CTSW110-5] UTF-16 Payload]]></msg>
+      
+  <!-- Msg 6 (opt): text/utf-8 + both amqp-value and data present → REJECT -->
+      
+  <msg idx="6"><![CDATA[[CTSW110-6] Both Payload Fields]]></msg>
+      
+  <!-- IPM-ID and Registered-ID patterns -->
+      
+  <config key="ipm_id_pattern"><![CDATA[IPM.CTSW110.{ts}]]></config>
+      
+  <config key="reg_id_pattern"><![CDATA[REG.CTSW110]]></config>
+    
+  <config key="binary_file_path"><![CDATA[materials/sample.pdf]]></config>
+  <config key="amhs_recipients">VVTSYMYX</config>
+</case>

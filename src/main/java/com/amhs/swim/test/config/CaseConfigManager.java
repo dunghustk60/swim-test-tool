@@ -31,6 +31,7 @@ public class CaseConfigManager {
     private static final String CONFIG_FILE = "config/case_payloads.json"; // user customizations
     private static final String DEFAULTS_FILE_XML = "config/default_case_payloads.xml"; // standardized defaults
     private static final String DEFAULTS_FILE_TXT = "config/default_case_payloads.txt"; // fallback plaintext defaults
+    private static final String CASES_DIRECTORY = "config/cases"; // one XML file per case
     private static CaseConfigManager instance;
     private JSONObject caseConfigs;
     private Map<String, Map<Integer, String>> defaultPayloads;
@@ -115,13 +116,16 @@ public class CaseConfigManager {
                             String payload = msgElem.getTextContent();
                             defaultPayloads.computeIfAbsent(caseId, k -> new HashMap<>()).put(idx, payload);
                             
-                            // Load optional metadata attributes
+                            // Load optional metadata attributes.  Keeping every attribute
+                            // (apart from the message index) makes the XML the single
+                            // source of truth for both payloads and UI message definitions.
                             Map<String, String> meta = new HashMap<>();
-                            if (msgElem.hasAttribute("content-type")) {
-                                meta.put("content-type", msgElem.getAttribute("content-type"));
-                            }
-                            if (msgElem.hasAttribute("body-type")) {
-                                meta.put("body-type", msgElem.getAttribute("body-type"));
+                            org.w3c.dom.NamedNodeMap attributes = msgElem.getAttributes();
+                            for (int attributeIndex = 0; attributeIndex < attributes.getLength(); attributeIndex++) {
+                                org.w3c.dom.Node attribute = attributes.item(attributeIndex);
+                                if (!"idx".equals(attribute.getNodeName())) {
+                                    meta.put(attribute.getNodeName(), attribute.getNodeValue());
+                                }
                             }
                             if (!meta.isEmpty()) {
                                 msgMetadata.computeIfAbsent(caseId, k -> new HashMap<>()).put(idx, meta);
@@ -167,6 +171,74 @@ public class CaseConfigManager {
             }
         } catch (Exception e) {
             Logger.logCase("CONFIG", "WARN", "Failed to load standard defaults: " + e.getMessage());
+        }
+        loadIndividualCaseFiles();
+    }
+
+    /**
+     * Load per-case XML files after the legacy combined catalog so they take
+     * precedence. Each file has a single <case id="CTSWxxx"> element and the
+     * same <msg> and <config> structure as the legacy catalog.
+     */
+    private void loadIndividualCaseFiles() {
+        Path casesPath = Paths.get(CASES_DIRECTORY);
+        if (!Files.isDirectory(casesPath)) return;
+
+        try (Stream<Path> files = Files.list(casesPath)) {
+            files.filter(path -> path.getFileName().toString().toLowerCase().endsWith(".xml"))
+                 .forEach(this::loadIndividualCaseFile);
+        } catch (IOException e) {
+            Logger.logCase("CONFIG", "WARN", "Failed to read case configuration directory: " + e.getMessage());
+        }
+    }
+
+    private void loadIndividualCaseFile(Path path) {
+        try {
+            DocumentBuilder documentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+            Document document = documentBuilder.parse(path.toFile());
+            Element caseElement = document.getDocumentElement();
+            if (!"case".equals(caseElement.getTagName())) {
+                Logger.logCase("CONFIG", "WARN", "Skipping invalid case configuration: " + path);
+                return;
+            }
+
+            String caseId = caseElement.getAttribute("id");
+            if (caseId == null || caseId.trim().isEmpty()) {
+                Logger.logCase("CONFIG", "WARN", "Skipping case configuration without an id: " + path);
+                return;
+            }
+
+            NodeList messageNodes = caseElement.getElementsByTagName("msg");
+            for (int i = 0; i < messageNodes.getLength(); i++) {
+                Element messageElement = (Element) messageNodes.item(i);
+                int index = Integer.parseInt(messageElement.getAttribute("idx"));
+                defaultPayloads.computeIfAbsent(caseId, key -> new HashMap<>()).put(index, messageElement.getTextContent());
+
+                Map<String, String> metadata = new HashMap<>();
+                org.w3c.dom.NamedNodeMap attributes = messageElement.getAttributes();
+                for (int attributeIndex = 0; attributeIndex < attributes.getLength(); attributeIndex++) {
+                    org.w3c.dom.Node attribute = attributes.item(attributeIndex);
+                    if (!"idx".equals(attribute.getNodeName())) {
+                        metadata.put(attribute.getNodeName(), attribute.getNodeValue());
+                    }
+                }
+                if (!metadata.isEmpty()) {
+                    msgMetadata.computeIfAbsent(caseId, key -> new HashMap<>()).put(index, metadata);
+                }
+            }
+
+            NodeList configNodes = caseElement.getElementsByTagName("config");
+            for (int i = 0; i < configNodes.getLength(); i++) {
+                Element configElement = (Element) configNodes.item(i);
+                String key = configElement.getAttribute("key");
+                if (!key.isEmpty()) {
+                    caseConfigDefaults.computeIfAbsent(caseId, ignored -> new HashMap<>())
+                                      .put(key, configElement.getTextContent());
+                }
+            }
+            Logger.logCase("CONFIG", "INFO", "Loaded case configuration from: " + path);
+        } catch (Exception e) {
+            Logger.logCase("CONFIG", "WARN", "Failed to load case configuration " + path + ": " + e.getMessage());
         }
     }
     

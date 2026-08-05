@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<case id="CTSW111">
+      
+  <!-- Msg 1: text within size limit -->
+      
+  <msg idx="1"><![CDATA[[CTSW111-1] 1 KB Text Payload]]></msg>
+      
+  <!-- Msg 2: binary file within size limit -->
+      
+  <msg idx="2"><![CDATA[materials/small_payload.bin]]></msg>
+      
+  <!-- Msg 3: text exceeding size limit (generated in code) -->
+      
+  <msg idx="3"><![CDATA[OVER max]]></msg>
+      
+  <!-- Msg 4: binary file exceeding size limit -->
+      
+  <msg idx="4"><![CDATA[materials/large_payload.bin]]></msg>
+      
+  <!-- IPM-ID and Registered-ID patterns -->
+      
+  <config key="ipm_id_pattern"><![CDATA[IPM.CTSW111.{ts}]]></config>
+      
+  <config key="reg_id_pattern"><![CDATA[REG.CTSW111]]></config>
+    
+  <config key="binary_file_path_2"><![CDATA[materials/small_payload.bin]]></config>
+  <config key="binary_file_path_4"><![CDATA[materials/large_payload.bin]]></config>
+  <config key="amhs_recipients">VVTSYMYX</config>
+</case>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<case id="CTSW112">
+      
+  <!-- Msg 1: Load 512 addresses from file → ACCEPT -->
+      
+  <msg idx="1"><![CDATA[materials/address_512.txt]]></msg>
+      
+  <!-- Msg 2: Load 513 addresses from file → REJECT -->
+      
+  <msg idx="2"><![CDATA[materials/address_513.txt]]></msg>
+    
+  <config key="amhs_recipients">VVTSYMYX</config>
+</case>

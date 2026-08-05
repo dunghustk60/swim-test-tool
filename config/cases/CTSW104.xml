@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<case id="CTSW104">
+      
+  <!-- Msgs 1–10: AMQP priorities 0–9 -->
+      
+  <msg idx="1"><![CDATA[[CTSW104-1] Priority 0 Message]]></msg>
+      
+  <msg idx="2"><![CDATA[[CTSW104-2] Priority 1 Message]]></msg>
+      
+  <msg idx="3"><![CDATA[[CTSW104-3] Priority 2 Message]]></msg>
+      
+  <msg idx="4"><![CDATA[[CTSW104-4] Priority 3 Message]]></msg>
+      
+  <msg idx="5"><![CDATA[[CTSW104-5] Priority 4 Message]]></msg>
+      
+  <msg idx="6"><![CDATA[[CTSW104-6] Priority 5 Message]]></msg>
+      
+  <msg idx="7"><![CDATA[[CTSW104-7] Priority 6 Message]]></msg>
+      
+  <msg idx="8"><![CDATA[[CTSW104-8] Priority 7 Message]]></msg>
+      
+  <msg idx="9"><![CDATA[[CTSW104-9] Priority 8 Message]]></msg>
+      
+  <msg idx="10"><![CDATA[[CTSW104-10] Priority 9 Message]]></msg>
+      
+  <!-- Msgs 11–15: Priority=4 + amhs_ats_pri override (SS,DD,FF,GG,KK) -->
+      
+  <msg idx="11"><![CDATA[[CTSW104-11] Priority 4 + ATS_SS Message]]></msg>
+      
+  <msg idx="12"><![CDATA[[CTSW104-12] Priority 4 + ATS_DD Message]]></msg>
+      
+  <msg idx="13"><![CDATA[[CTSW104-13] Priority 4 + ATS_FF Message]]></msg>
+      
+  <msg idx="14"><![CDATA[[CTSW104-14] Priority 4 + ATS_GG Message]]></msg>
+      
+  <msg idx="15"><![CDATA[[CTSW104-15] Priority 4 + ATS_KK Message]]></msg>
+      
+  <!-- Msgs 16–19: Priority=1 + amhs_ats_pri override (SS,DD,FF,GG) -->
+      
+  <msg idx="16"><![CDATA[[CTSW104-16] Priority 1 + ATS_SS Message]]></msg>
+      
+  <msg idx="17"><![CDATA[[CTSW104-17] Priority 1 + ATS_DD Message]]></msg>
+      
+  <msg idx="18"><![CDATA[[CTSW104-18] Priority 1 + ATS_FF Message]]></msg>
+      
+  <msg idx="19"><![CDATA[[CTSW104-19] Priority 1 + ATS_GG Message]]></msg>
+      
+  <!-- Msg 20: Priority=9 + amhs_ats_pri=KK (must take precedence) -->
+      
+  <msg idx="20"><![CDATA[[CTSW104-20] Priority 9 + ATS_KK Message]]></msg>
+    
+  <config key="amhs_recipients">VVTSYMYX</config>
+</case>
