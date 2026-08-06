@@ -6,4 +6,6 @@
   <msg idx="1"><![CDATA[[CTSW109-1] UNKNOWN1 | Unknown Originator Payload]]></msg>
     
   <config key="amhs_recipients">VVTSYMYX</config>
+  <config key="amhs_ats_ft"><![CDATA[010000]]></config>
+  <config key="amhs_ats_ohi"><![CDATA[OHI]]></config>
 </case>

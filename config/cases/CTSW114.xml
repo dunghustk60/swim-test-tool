@@ -20,4 +20,6 @@
   <config key="reg_id_pattern"><![CDATA[REG.CTSW114]]></config>
     
   <config key="amhs_recipients">VVTSYMYX</config>
+  <config key="amhs_ats_ft"><![CDATA[010000]]></config>
+  <config key="amhs_ats_ohi"><![CDATA[OHI]]></config>
 </case>

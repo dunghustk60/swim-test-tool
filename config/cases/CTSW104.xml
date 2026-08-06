@@ -50,4 +50,6 @@
   <msg idx="20"><![CDATA[[CTSW104-20] Priority 9 + ATS_KK Message]]></msg>
     
   <config key="amhs_recipients">VVTSYMYX</config>
+  <config key="amhs_ats_ft"><![CDATA[010000]]></config>
+  <config key="amhs_ats_ohi"><![CDATA[OHI]]></config>
 </case>

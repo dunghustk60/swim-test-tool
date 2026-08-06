@@ -3,35 +3,35 @@
       
   <!-- Text Messages (1–6): Various rejection scenarios -->
       
-  <msg idx="1"><![CDATA[[CTSW102-1] Erroneous Message 1]]></msg>
+  <msg idx="1" description="TEXT | invalid priority" mandatory="true" optional="false" input-key="payload" file="false" body-type="THIS IS A TEST MESSAGE FROM SWIM"><![CDATA[[CTSW102-1] Erroneous Message 1]]></msg>
       
-  <msg idx="2"><![CDATA[[CTSW102-2] Erroneous Message 2]]></msg>
+  <msg idx="2" description="TEXT | empty message-id" mandatory="false" optional="true" input-key="payload" file="false" body-type="THIS IS A TEST MESSAGE FROM SWIM"><![CDATA[[CTSW102-2] Erroneous Message 2]]></msg>
       
-  <msg idx="3"><![CDATA[[CTSW102-3] Erroneous Message 3]]></msg>
+  <msg idx="3" description="TEXT | creation-time=0" mandatory="false" optional="true" input-key="payload" file="false" body-type="THIS IS A TEST MESSAGE FROM SWIM"><![CDATA[[CTSW102-3] Erroneous Message 3]]></msg>
       
-  <msg idx="4"/>
+  <msg idx="4" description="TEXT | empty amqp-value" mandatory="true" optional="false" input-key="payload" file="false" body-type="THIS IS A TEST MESSAGE FROM SWIM"/>
    
   <!-- Empty payload for Msg 4 (amqp-value empty) -->
       
-  <msg idx="5"><![CDATA[[CTSW102-5] Erroneous Message 5]]></msg>
+  <msg idx="5" description="TEXT | empty recipients" mandatory="true" optional="false" input-key="payload" file="false" body-type="THIS IS A TEST MESSAGE FROM SWIM"><![CDATA[[CTSW102-5] Erroneous Message 5]]></msg>
       
-  <msg idx="6"><![CDATA[[CTSW102-6] Erroneous Message 6]]></msg>
+  <msg idx="6" description="TEXT | empty content type" mandatory="false" optional="true" input-key="payload" file="false" body-type="THIS IS A TEST MESSAGE FROM SWIM"><![CDATA[[CTSW102-6] Erroneous Message 6]]></msg>
       
   <!-- Binary Messages (7–12): File-based payloads -->
       
-  <msg idx="7"><![CDATA[materials/sample.pdf]]></msg>
+  <msg idx="7" description="BINARY | invalid priority" mandatory="true" optional="false" input-key="binPayload_7" file="true" body-type="DATA"><![CDATA[materials/sample.pdf]]></msg>
       
-  <msg idx="8"><![CDATA[materials/sample.pdf]]></msg>
+  <msg idx="8" description="BINARY | empty message-id" mandatory="false" optional="true" input-key="binPayload_8" file="true" body-type="DATA"><![CDATA[materials/sample.pdf]]></msg>
       
-  <msg idx="9"><![CDATA[materials/sample.pdf]]></msg>
+  <msg idx="9" description="BINARY | creation-time=0" mandatory="false" optional="true" input-key="binPayload_9" file="true" body-type="DATA"><![CDATA[materials/sample.pdf]]></msg>
       
-  <msg idx="10"/>
+  <msg idx="10" description="BINARY | empty data" mandatory="true" optional="false" input-key="binPayload_10" file="true" body-type="DATA"/>
    
   <!-- Empty binary payload for Msg 10 (data element empty) -->
       
-  <msg idx="11"><![CDATA[materials/sample.pdf|/C=EU/ADMD=ICAO/PRMD=TEST/O=GATEWAY/OU=AMHS/CN=LONGADDR1]]></msg>
+  <msg idx="11" description="BINARY | long recipient" mandatory="true" optional="false" input-key="binPayload_11" file="true" body-type="DATA"><![CDATA[materials/sample.pdf|/C=EU/ADMD=ICAO/PRMD=TEST/O=GATEWAY/OU=AMHS/CN=LONGADDR1]]></msg>
       
-  <msg idx="12"><![CDATA[materials/sample.pdf]]></msg>
+  <msg idx="12" description="BINARY | empty content type" mandatory="false" optional="true" input-key="binPayload_12" file="true" body-type="DATA"><![CDATA[materials/sample.pdf]]></msg>
       
   <!-- IPM-ID and Registered-ID patterns -->
       
@@ -41,4 +41,6 @@
   <config key="binary_file_path"><![CDATA[materials/sample.pdf]]></config>
     
   <config key="amhs_recipients">VVTSYMYX</config>
+  <config key="amhs_ats_ft"><![CDATA[010000]]></config>
+  <config key="amhs_ats_ohi"><![CDATA[OHI]]></config>
 </case>

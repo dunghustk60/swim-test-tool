@@ -221,7 +221,7 @@ public class SwimToAmhsTests {
                     getMessageBooleanMetadata(configMgr, "CTSW101", 2, "optional", false),
                     getMessageMetadata(configMgr, "CTSW101", 2, "input-key", "binFile"),
                     getMessageBooleanMetadata(configMgr, "CTSW101", 2, "file", true))
-            );
+            ); // CTSW101
         }
 
         @Override
@@ -291,7 +291,7 @@ public class SwimToAmhsTests {
                     p.setUserVisibleStr("Standard Binary Message");
                     
                     // Get file path from config or input
-                    String path = configMgr.getPayload("CTSW101", 2);
+                    String path = configMgr.getConfig("CTSW101", "binary_file_path", "");
                     if (inputs != null && inputs.containsKey("binFile")) {
                         path = inputs.get("binFile");
                     }
@@ -304,8 +304,10 @@ public class SwimToAmhsTests {
                         payload = Files.readAllBytes(Paths.get(path));
                         Logger.logCase(testCaseId, "INFO", "Loaded binary file: " + path + " (" + payload.length + " bytes)");
                     } else {
-                        payload = "CTSW101 Binary Dummy Payload".getBytes();
-                        Logger.logCase(testCaseId, "WARN", "Binary file not found, using dummy string payload.");
+                        String message = "CTSW101 binary file was not found: " + path
+                            + ". Set binary_file_path in config/cases/CTSW101.xml or upload a valid file.";
+                        Logger.logCase(testCaseId, "ERROR", message);
+                        throw new IOException(message);
                     }
                     
                     dual(inputs, payload, p);

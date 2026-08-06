@@ -17,6 +17,8 @@
       
   <config key="reg_id_pattern"><![CDATA[REG.CTSW101.{idx}]]></config>
     
-  <config key="binary_file_path"><![CDATA[materials/sample.pdf]]></config>
+  <config key="binary_file_path"><![CDATA[materials/address_512.txt]]></config>
   <config key="amhs_recipients">VVTSYMYX</config>
+  <config key="amhs_ats_ft"><![CDATA[010000]]></config>
+  <config key="amhs_ats_ohi"><![CDATA[OHI]]></config>
 </case>

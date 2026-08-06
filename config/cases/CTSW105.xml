@@ -10,4 +10,6 @@
   <msg idx="2"><![CDATA[[CTSW105-2] Filing Time Explicit 250102]]></msg>
     
   <config key="amhs_recipients">VVTSYMYX</config>
+  <config key="amhs_ats_ft"><![CDATA[010000]]></config>
+  <config key="amhs_ats_ohi"><![CDATA[OHI]]></config>
 </case>

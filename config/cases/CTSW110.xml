@@ -33,4 +33,6 @@
     
   <config key="binary_file_path"><![CDATA[materials/sample.pdf]]></config>
   <config key="amhs_recipients">VVTSYMYX</config>
+  <config key="amhs_ats_ft"><![CDATA[010000]]></config>
+  <config key="amhs_ats_ohi"><![CDATA[OHI]]></config>
 </case>

@@ -26,4 +26,6 @@
   <config key="binary_file_path_2"><![CDATA[materials/small_payload.bin]]></config>
   <config key="binary_file_path_4"><![CDATA[materials/large_payload.bin]]></config>
   <config key="amhs_recipients">VVTSYMYX</config>
+  <config key="amhs_ats_ft"><![CDATA[010000]]></config>
+  <config key="amhs_ats_ohi"><![CDATA[OHI]]></config>
 </case>

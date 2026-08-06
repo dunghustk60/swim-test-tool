@@ -10,4 +10,6 @@
   <msg idx="2"><![CDATA[materials/address_513.txt]]></msg>
     
   <config key="amhs_recipients">VVTSYMYX</config>
+  <config key="amhs_ats_ft"><![CDATA[010000]]></config>
+  <config key="amhs_ats_ohi"><![CDATA[OHI]]></config>
 </case>

@@ -32,6 +32,9 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.Random;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 
 /**
  * Dynamic execution environment for individual AMHS/SWIM test cases.
@@ -69,6 +72,7 @@ public class TestCasePanel extends JPanel {
     private JToggleButton btnAutoSend;
     private JSpinner spinnerAutoInterval;
     private JCheckBox chkAutoRandomize;
+    private JCheckBox chkAutoGenerateAtsFt;
     
     // Log Panel (Right)
     private JTextArea logArea;
@@ -691,13 +695,10 @@ public class TestCasePanel extends JPanel {
                           || key.toUpperCase().contains("ADDRESS")
                           || key.toUpperCase().contains("PATH");
 
-        // For file-path fields: the stored/sent value is always the full path.
-        // Display value: basename only (avoids horizontal overflow in the narrow field).
+        // Keep the full configured path in the editable field. The send path is
+        // read directly from this field, so displaying only a basename would
+        // discard the XML-configured directory (for example, "materials/").
         String displayVal = defVal;
-        if (isFilePath && defVal != null && (defVal.contains("/") || defVal.contains("\\"))) {
-            int lastSep = Math.max(defVal.lastIndexOf('/'), defVal.lastIndexOf('\\'));
-            displayVal = defVal.substring(lastSep + 1);
-        }
 
         javax.swing.text.JTextComponent tf;
         if (key.toLowerCase().contains("payload") && !isFilePath) {
@@ -709,9 +710,8 @@ public class TestCasePanel extends JPanel {
         } else {
             JTextField jtf = new JTextField(displayVal);
             tf = jtf;
-            if (isFilePath && !defVal.equals(displayVal)) {
-                tf.setToolTipText("Full path: " + defVal);
-                tf.putClientProperty("fullPath", defVal);
+            if (isFilePath && defVal != null && !defVal.isEmpty()) {
+                tf.setToolTipText("Configured path: " + defVal);
             }
             targetPanel.add(tf, gbc);
         }
@@ -719,10 +719,24 @@ public class TestCasePanel extends JPanel {
         configFields.put(key, tf);
 
         gbc.gridx = 2; gbc.weightx = 0;
-        JButton btnUpload = new JButton("Upload");
-        final String fKey = key;
-        btnUpload.addActionListener(e -> doUploadField(fKey));
-        targetPanel.add(btnUpload, gbc);
+        if ("amhs_ats_ft".equals(key)) {
+            JPanel ftActions = new JPanel(new FlowLayout(FlowLayout.LEFT, 3, 0));
+            ftActions.setOpaque(false);
+            JButton btnGenerateNow = new JButton("Now");
+            btnGenerateNow.setToolTipText("Set AMHS ATS FT to the current UTC time (DDHHMM)");
+            btnGenerateNow.addActionListener(e -> generateAtsFtNow());
+            chkAutoGenerateAtsFt = new JCheckBox("Auto on Send");
+            chkAutoGenerateAtsFt.setOpaque(false);
+            chkAutoGenerateAtsFt.setToolTipText("Generate the current UTC time whenever a message is sent");
+            ftActions.add(btnGenerateNow);
+            ftActions.add(chkAutoGenerateAtsFt);
+            targetPanel.add(ftActions, gbc);
+        } else {
+            JButton btnUpload = new JButton("Upload");
+            final String fKey = key;
+            btnUpload.addActionListener(e -> doUploadField(fKey));
+            targetPanel.add(btnUpload, gbc);
+        }
 
         return row + 1;
     }
@@ -737,6 +751,20 @@ public class TestCasePanel extends JPanel {
     private String defaultIpmId(String caseId, CaseConfigManager cfgMgr) {
         String pattern = cfgMgr.getConfig(caseId, "ipm_id_pattern", "IPM.GW.{ts}");
         return pattern.replace("{ts}", String.valueOf(System.currentTimeMillis()));
+    }
+
+    private String currentAtsFt() {
+        return ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern("ddHHmm"));
+    }
+
+    private void generateAtsFtNow() {
+        javax.swing.text.JTextComponent field = configFields.get("amhs_ats_ft");
+        if (field != null) field.setText(currentAtsFt());
+    }
+
+    private boolean isValidAtsFt(String value) {
+        return value == null || value.isEmpty()
+            || value.matches("(?:0[1-9]|[12]\\d|3[01])(?:[01]\\d|2[0-3])[0-5]\\d");
     }
 
     /**
@@ -755,7 +783,8 @@ public class TestCasePanel extends JPanel {
             // ── CTSW101 ──────────────────────────────────────────────────────────
             case "CTSW101": {
                 if (mIdx == 2) {
-                    specs.add(new String[]{"binFile", "BINARY FILE PATH", raw});
+                    String binaryPath = cfgMgr.getConfig(caseId, "binary_file_path", "");
+                    specs.add(new String[]{"binFile", "BINARY FILE PATH", binaryPath});
                 } else {
                     specs.add(new String[]{"payload", "TEXT PAYLOAD", raw});
                 }
@@ -830,7 +859,7 @@ public class TestCasePanel extends JPanel {
             // msg 2 has a filing time (always 250102); rest is payload
             case "CTSW105": {
                 specs.add(new String[]{"p" + mIdx, "TEXT PAYLOAD", raw});
-                specs.add(new String[]{"amhs_ats_ft", "AMHS ATS FILING TIME (DDhhmm)", mIdx == 2 ? "250102" : ""});
+                specs.add(new String[]{"amhs_ats_ft", "AMHS ATS FT (DDHHMM)", mIdx == 2 ? "250102" : ""});
                 specs.add(new String[]{"amhs_ipm_id", "IPM ID", defaultIpmId(caseId, cfgMgr)});
                 String regPattern105 = cfgMgr.getConfig(caseId, "reg_id_pattern", "REG.GW.{idx}");
                 specs.add(new String[]{"amhs_registered_identifier", "REG. ID", regPattern105.replace("{idx}", String.valueOf(mIdx))});
@@ -1018,6 +1047,31 @@ public class TestCasePanel extends JPanel {
         if (!hasUvs) {
             specs.add(new String[]{"amhs_user_visible_string", "USER VISIBLE STRING", ""});
         }
+        // Keep these shared AMHS properties at the top of every case form.
+        // A case-specific specification (such as CTSW105's filing-time cases)
+        // keeps its own default value while still appearing in the same position.
+        String[] atsFtSpec = null;
+        String[] atsOhiSpec = null;
+        for (int i = specs.size() - 1; i >= 0; i--) {
+            String[] spec = specs.get(i);
+            if ("amhs_ats_ft".equals(spec[0])) {
+                atsFtSpec = spec;
+                specs.remove(i);
+            } else if ("amhs_ats_ohi".equals(spec[0])) {
+                atsOhiSpec = spec;
+                specs.remove(i);
+            }
+        }
+        if (atsFtSpec == null) {
+            atsFtSpec = new String[]{"amhs_ats_ft", "AMHS ATS FT (DDHHMM)",
+                cfgMgr.getConfig(caseId, "amhs_ats_ft", "010000")};
+        }
+        if (atsOhiSpec == null) {
+            atsOhiSpec = new String[]{"amhs_ats_ohi", "AMHS ATS OHI",
+                cfgMgr.getConfig(caseId, "amhs_ats_ohi", "OHI")};
+        }
+        specs.add(0, atsOhiSpec);
+        specs.add(0, atsFtSpec);
 
         return specs;
     }
@@ -1186,6 +1240,12 @@ public class TestCasePanel extends JPanel {
         int attempt = ResultManager.getInstance().getNextAttempt(currentCase.getTestCaseId(), msgIndex);
 
         Map<String, String> inputs = prepareInputsForSend(false, false);
+        if (!isValidAtsFt(inputs.get("amhs_ats_ft"))) {
+            JOptionPane.showMessageDialog(this,
+                "AMHS ATS FT must use the DDHHMM format (for example, 061425).",
+                "Invalid AMHS ATS FT", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
 
         String resolvedTopic = topicField.getText().trim();
         String resolvedQueue = queueField.getText().trim();
@@ -1261,6 +1321,12 @@ public class TestCasePanel extends JPanel {
                               || key.toUpperCase().contains("ADDRESS");
 
             String outVal = val;
+            if ("amhs_ats_ft".equals(key)
+                    && chkAutoGenerateAtsFt != null
+                    && chkAutoGenerateAtsFt.isSelected()) {
+                outVal = currentAtsFt();
+                entry.getValue().setText(outVal);
+            }
             if (randomize && !isPathField && !outVal.isEmpty() && (key.toLowerCase().contains("payload") || key.toLowerCase().contains("body") || key.toLowerCase().startsWith("p"))) {
                 // Find flight-number-like patterns (2-3 uppercase letters followed by 2-4 digits)
                 java.util.regex.Matcher m = java.util.regex.Pattern.compile("([A-Z]{2,3})(\\d{2,4})\\b").matcher(outVal);
@@ -1314,7 +1380,11 @@ public class TestCasePanel extends JPanel {
         }
 
         String finalPayload = primaryPayload.isEmpty() ? summarySb.toString() : primaryPayload;
-        if (!inputs.containsKey(currentMsg.getCustomKey()) || inputs.get(currentMsg.getCustomKey()).isEmpty()) {
+        // A file-backed message must never use the human-readable input summary
+        // as its path. For example, the summary contains " | ", which is not a
+        // valid Windows file-path character.
+        if (!currentMsg.isFile()
+                && (!inputs.containsKey(currentMsg.getCustomKey()) || inputs.get(currentMsg.getCustomKey()).isEmpty())) {
             inputs.put(currentMsg.getCustomKey(), finalPayload);
         }
 
@@ -1375,6 +1445,11 @@ public class TestCasePanel extends JPanel {
                 });
                 
                 if (inputsRef[0] == null) return;
+                if (!isValidAtsFt(inputsRef[0].get("amhs_ats_ft"))) {
+                    Logger.logCase(currentCase.getTestCaseId(), "ERROR",
+                        "AMHS ATS FT must use the DDHHMM format; message was not sent.");
+                    return;
+                }
                 
                 int msgIndex = msgIndexRef[0];
                 int attempt = ResultManager.getInstance().getNextAttempt(currentCase.getTestCaseId(), msgIndex);
