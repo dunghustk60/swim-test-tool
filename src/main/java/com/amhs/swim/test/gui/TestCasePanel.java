@@ -588,6 +588,9 @@ public class TestCasePanel extends JPanel {
         if (overrideCtype != null) ctype = overrideCtype;
         String overrideBtype = cfgMgr.getMetadata(caseId, mIdx, "body-type");
         if (overrideBtype != null) btype = overrideBtype;
+        if ("CTSW110".equals(caseId) && mIdx == 5) {
+            ctype = "text/plain; charset=\"utf-16\"";
+        }
 
         contentTypeCombo.setSelectedItem(ctype);
         bodyTypeField.setText(btype);
@@ -867,12 +870,11 @@ public class TestCasePanel extends JPanel {
                 break;
             }
             // ── CTSW106 ──────────────────────────────────────────────────────────
-            // executeSingle reads inputs.get("p"+idx), splits by "|": part[0]=ohi, part[1]=body
+            // The shared AMHS ATS OHI field is configured per message; the XML
+            // payload still provides the CTSW106 message body after the pipe.
             case "CTSW106": {
                 String[] parts = raw.split("\\|", 2);
-                String defOhi  = parts.length > 0 ? parts[0].trim() : "";
                 String defBody = parts.length > 1 ? parts[1].trim() : "OHI Content";
-                specs.add(new String[]{"amhs_ats_ohi_" + mIdx, "OHI (amhs_ats_ohi, msg " + mIdx + ")", defOhi});
                 specs.add(new String[]{"body_" + mIdx,         "BODY PAYLOAD",                         defBody});
                 specs.add(new String[]{"amhs_ipm_id", "IPM ID", defaultIpmId(caseId, cfgMgr)});
                 String regPattern106 = cfgMgr.getConfig(caseId, "reg_id_pattern", "REG.GW.{idx}");
@@ -887,10 +889,10 @@ public class TestCasePanel extends JPanel {
                 String[] parts = raw.split("\\|", -1);
                 if (mIdx == 4) {
                     specs.add(new String[]{"subject_" + mIdx,      "AMQP SUBJECT",            parts.length > 0 ? parts[0].trim() : ""});
-                    specs.add(new String[]{"amhs_subject_" + mIdx, "AMHS_SUBJECT (app prop)", parts.length > 1 ? parts[1].trim() : ""});
+                    specs.add(new String[]{"amhs_subject", "AMHS_SUBJECT (app prop)", parts.length > 1 ? parts[1].trim() : ""});
                     specs.add(new String[]{"body_" + mIdx,         "BODY PAYLOAD",            parts.length > 2 ? parts[2].trim() : "Msg4 Payload"});
                 } else if (mIdx == 3) {
-                    specs.add(new String[]{"amhs_subject_" + mIdx, "AMHS_SUBJECT (app prop)", parts.length > 1 ? parts[1].trim() : ""});
+                    specs.add(new String[]{"amhs_subject", "AMHS_SUBJECT (app prop)", parts.length > 1 ? parts[1].trim() : ""});
                     specs.add(new String[]{"body_" + mIdx,         "BODY PAYLOAD",            parts.length > 2 ? parts[2].trim() : "Msg3 Payload"});
                 } else {
                     specs.add(new String[]{"subject_" + mIdx,      "AMQP SUBJECT",            parts.length > 0 ? parts[0].trim() : ""});
@@ -1008,13 +1010,16 @@ public class TestCasePanel extends JPanel {
             // EUR Doc 047 §4.5.2.6-4.5.2.8
             case "CTSW116": {
                 String[] parts = raw.split("\\|", 2);
-                String defPath    = parts.length > 0 ? parts[0].trim() : "src/main/resources/sample.pdf";
+                String pathConfigKey = "binary_file_path_" + mIdx;
+                String legacyPath = cfgMgr.getConfig(caseId, "binary_file_path",
+                    parts.length > 0 ? parts[0].trim() : "materials/sample.pdf");
+                String defPath = cfgMgr.getConfig(caseId, pathConfigKey, legacyPath);
                 String defLastMod = parts.length > 1 ? parts[1].trim() : "240101120000Z";
                 String fileKey = (mIdx == 1) ? "binFile" : "binFile2";
                 specs.add(new String[]{fileKey,              "BINARY FILE",                              defPath});
                 specs.add(new String[]{"amhs_ftbp_last_mod", "FTBP LAST MOD (DDMMYYhhmmssZ per §4.5.2.7)", defLastMod});
-                specs.add(new String[]{"swim_compression", "SWIM COMPRESSION (e.g. gzip)", mIdx == 1 ? "gzip" : ""});
-                specs.add(new String[]{"amhs_ftbp_file_name", "FTBP FILE NAME", "sample.pdf"});
+                specs.add(new String[]{"swim_compression", "SWIM COMPRESSION (e.g. gzip)",
+                    cfgMgr.getConfig(caseId, "swim_compression_" + mIdx, mIdx == 2 ? "gzip" : "")});
                 specs.add(new String[]{"amhs_bodypart_type", "BODY PART TYPE", "file-transfer-body-part"});
                 specs.add(new String[]{"amhs_ipm_id", "IPM ID", defaultIpmId(caseId, cfgMgr)});
                 String regPattern116 = cfgMgr.getConfig(caseId, "reg_id_pattern", "REG.GW.{idx}");
@@ -1067,8 +1072,10 @@ public class TestCasePanel extends JPanel {
                 cfgMgr.getConfig(caseId, "amhs_ats_ft", "010000")};
         }
         if (atsOhiSpec == null) {
+            String ohiConfigKey = "CTSW106".equals(caseId)
+                ? "amhs_ats_ohi_" + mIdx : "amhs_ats_ohi";
             atsOhiSpec = new String[]{"amhs_ats_ohi", "AMHS ATS OHI",
-                cfgMgr.getConfig(caseId, "amhs_ats_ohi", "OHI")};
+                cfgMgr.getConfig(caseId, ohiConfigKey, "OHI")};
         }
         specs.add(0, atsOhiSpec);
         specs.add(0, atsFtSpec);
@@ -1695,7 +1702,9 @@ public class TestCasePanel extends JPanel {
                 sb.append("  amhs_recipients: ").append(amhsRecipients).append("\n");
             }
         }
-        sb.append("  amqp_body_type: ").append(bodyType).append("\n");
+        String bodyAttributeName = currentCase != null && "CTSW110".equals(currentCase.getTestCaseId())
+            ? "amqp_value" : "amqp_body_type";
+        sb.append("  ").append(bodyAttributeName).append(": ").append(bodyType).append("\n");
         for (Map.Entry<String, String> entry : extraFields.entrySet()) {
             sb.append("  ").append(entry.getKey()).append(": ").append(entry.getValue()).append("\n");
         }

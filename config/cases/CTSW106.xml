@@ -28,4 +28,10 @@
   <config key="amhs_recipients">VVTSYMYX</config>
   <config key="amhs_ats_ft"><![CDATA[010000]]></config>
   <config key="amhs_ats_ohi"><![CDATA[OHI]]></config>
+  <config key="amhs_ats_ohi_1"><![CDATA[[CTSW106-1] OHI-SHORT]]></config>
+  <config key="amhs_ats_ohi_2"><![CDATA[[CTSW106-2] AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA]]></config>
+  <config key="amhs_ats_ohi_3"><![CDATA[[CTSW106-3] AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA]]></config>
+  <config key="amhs_ats_ohi_4"><![CDATA[[CTSW106-4] OHI-HI-SHORT]]></config>
+  <config key="amhs_ats_ohi_5"><![CDATA[[CTSW106-5] BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB]]></config>
+  <config key="amhs_ats_ohi_6"><![CDATA[[CTSW106-6] BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB]]></config>
 </case>

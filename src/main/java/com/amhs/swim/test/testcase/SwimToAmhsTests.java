@@ -957,16 +957,16 @@ public class SwimToAmhsTests {
             if (idx < 1 || idx > 6) return false;
             int i = idx - 1;
 
-            // New field keys from buildExtraFieldSpecs: amhs_ats_ohi_<N>, body_<N>
-            // Fall back to pipe-split of the XML config default for compatibility
+            // The shared amhs_ats_ohi input is loaded from a per-message XML
+            // configuration value; the payload XML still supplies the body text.
             String configDefault = configMgr.getPayload("CTSW106", idx);
             String[] cfgParts = (configDefault != null && configDefault.contains("|"))
                 ? configDefault.split("\\|", 2) : new String[]{configDefault, "OHI Content"};
-            String defOhi  = cfgParts[0] != null ? cfgParts[0].trim() : ohiDefaults[i];
+            String defOhi = configMgr.getConfig("CTSW106", "amhs_ats_ohi_" + idx, ohiDefaults[i]);
             String defBody = cfgParts.length > 1 ? cfgParts[1].trim() : "OHI Content";
 
-            String ohi  = (inputs != null && inputs.containsKey("amhs_ats_ohi_" + idx) && !inputs.get("amhs_ats_ohi_" + idx).trim().isEmpty())
-                ? inputs.get("amhs_ats_ohi_" + idx) : defOhi;
+            String ohi  = (inputs != null && inputs.containsKey("amhs_ats_ohi") && !inputs.get("amhs_ats_ohi").trim().isEmpty())
+                ? inputs.get("amhs_ats_ohi") : defOhi;
             String body = (inputs != null && inputs.containsKey("body_" + idx) && !inputs.get("body_" + idx).trim().isEmpty())
                 ? inputs.get("body_" + idx) : defBody;
 
@@ -1061,7 +1061,7 @@ public class SwimToAmhsTests {
                 String defAmhsSubj  = cfgParts.length > 1 ? cfgParts[1].trim() : "subject from application property field";
                 String defBody      = cfgParts.length > 2 ? cfgParts[2].trim() : "Msg4 Payload";
                 String subject      = getInput(inputs, "subject_" + idx, defSubject);
-                String amhsSubject  = getInput(inputs, "amhs_subject_" + idx, defAmhsSubj);
+                String amhsSubject  = getInput(inputs, "amhs_subject", defAmhsSubj);
                 body                = getInput(inputs, "body_" + idx, defBody);
                 p.setAmqpSubject(subject);
                 p.setSubject(amhsSubject);
@@ -1069,7 +1069,7 @@ public class SwimToAmhsTests {
             } else if (idx == 3) {
                 String defAmhsSubj = cfgParts.length > 1 ? cfgParts[1].trim() : "Subject example";
                 String defBody     = cfgParts.length > 2 ? cfgParts[2].trim() : "Msg3 Payload";
-                String amhsSubject = getInput(inputs, "amhs_subject_" + idx, defAmhsSubj);
+                String amhsSubject = getInput(inputs, "amhs_subject", defAmhsSubj);
                 body               = getInput(inputs, "body_" + idx, defBody);
                 p.setSubject(amhsSubject);
                 desc = "amhs_subject-prop='" + amhsSubject + "' (no AMQP subject header)";
@@ -1303,7 +1303,8 @@ public class SwimToAmhsTests {
                     p.setContentType("text/plain; charset=utf-8"); 
                     p.setBodyType(SwimDriver.AMQPProperties.BodyType.AMQP_VALUE); 
                     String confDefault = configMgr.getPayload("CTSW110", 4);
-                    String payloadText = (inputs!=null?inputs.getOrDefault("text_4", confDefault):confDefault);
+                    // String payloadText = (inputs!=null?inputs.getOrDefault("text_4", confDefault):confDefault);
+                    String payloadText = "";
                     payload = payloadText.getBytes(); 
                     desc="text/utf-8|amqp-value PRESENT → ACCEPT"; 
                     break;
@@ -1960,7 +1961,9 @@ public class SwimToAmhsTests {
             String configDefault = configMgr.getPayload("CTSW116", idx);
             String[] cfgParts = (configDefault != null && configDefault.contains("|"))
                 ? configDefault.split("\\|", 2) : new String[]{configDefault, "240101120000Z"};
-            String defFilePath = cfgParts[0] != null ? cfgParts[0].trim() : "materials/sample.pdf";
+            String legacyFilePath = cfgParts[0] != null ? cfgParts[0].trim() : "materials/sample.pdf";
+            String defFilePath = configMgr.getConfig("CTSW116", "binary_file_path_" + idx,
+                configMgr.getConfig("CTSW116", "binary_file_path", legacyFilePath));
             String defLastMod  = cfgParts.length > 1 ? cfgParts[1].trim() : "240101120000Z";
 
             String fileKey = idx == 1 ? "binFile" : "binFile2";
@@ -2000,7 +2003,10 @@ public class SwimToAmhsTests {
 
             byte[] sendPayload = binPayload;
             String desc;
-            String ftbpFileName = Paths.get(filePath).getFileName().toString();
+            String derivedFileName = Paths.get(filePath).getFileName().toString();
+            String defaultFtbpFileName = idx == 2 ? derivedFileName + ".gz" : derivedFileName;
+            String ftbpFileName = configMgr.getConfig("CTSW116", "amhs_ftbp_file_name_" + idx,
+                defaultFtbpFileName);
             
             if (idx == 2) {
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -2009,7 +2015,6 @@ public class SwimToAmhsTests {
                 p.setExtraProp("swim_compression", "gzip");
                 // Per EUR Doc 047 §4.5.2.6: amhs_ftbp_file_name should reflect the actual file,
                 // including the .gz extension when GZIP compression is applied.
-                ftbpFileName = ftbpFileName + ".gz";
                 p.setExtraProp("amhs_ftbp_file_name", ftbpFileName);
                 // Per user request: use the ACTUAL compressed size for the object_size metric
                 p.setExtraProp("amhs_ftbp_object_size", (long)sendPayload.length);
