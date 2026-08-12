@@ -18,7 +18,52 @@
     <msg idx="1"
          description="Text message | priority=4 | content-type: text/plain;charset=utf-8 | body: amqp-value"
          mandatory="true" optional="false" input-key="p1" file="false"
-         content-type="text/plain;charset=utf-8" body-type="amqp-value"><![CDATA[[CTSW101-1] Test message priority-4 content text]]></msg>
+         content-type="text/plain;charset=utf-8" body-type="amqp-value"><![CDATA[{
+   "messageId": "FPL_FULL_20260812_id",
+   "messageType": "FPL",
+   "timestamp": 1786012419140,
+
+   "aircraftId": "CSC3903",
+   "flightRules": "I",
+   "flightType": "S",
+
+   "numberOfAircraft": "1",
+   "aircraftType": "A321",
+   "wakeTurbulence": "M",
+
+   "equipment": "SDE1E2E3FGHIM3RWY/EB1",
+
+   "departureIcao": "ZUTF",
+   "eobt": "1135",
+   "actualDepartureTime": "1140",
+
+   "cruisingSpeed": "K0800",
+   "cruisingLevel": "S1040",
+   "route": "LUVEN G212 SGM/K0870S0950 A599 ADBAG R471 KATBO/N0468F310 R471 NAKHA/N0468F320 R474 NOB Q1 AC",
+
+   "destinationIcao": "VVTS",
+   "totalEet": "0330",
+   "altDestination1": "VVCR",
+   "altDestination2": "VVDN",
+   "actualArrivalTime": "1510",
+
+   "sts": "ALTRV",
+   "pbn": "A1B1C1D1L1O1S2",
+   "navCapabilities": "GBAS",
+   "comCapabilities": "CPDLC",
+   "datApplications": "FANSA",
+   "registration": "B6838",
+   "eet": "VVHN0118 VVHM0214",
+   "selcal": "ADBF",
+   "dof": "260715",
+   "operator": "SICHUAN AIRLINES",
+   "remarks": "ACAS II EQUIPPED",
+
+   "boundaryPoint": "PANTO",
+   "boundaryTime": "1630",
+   "clearedLevel": "F350"
+ }
+ ]]></msg>
     <!-- Msg 2: Binary message (PDF file path) - loaded from materials directory -->
     <msg idx="2"
          description="Binary message | priority=4 | content-type: application/octet-stream | body: data"
