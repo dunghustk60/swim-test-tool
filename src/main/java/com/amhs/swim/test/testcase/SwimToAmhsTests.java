@@ -487,16 +487,12 @@ public class SwimToAmhsTests {
                     break;
                 case 11: {
                     p.setContentType("application/octet-stream"); p.setBodyType(SwimDriver.AMQPProperties.BodyType.DATA);
-                    // amhs_recipients loaded from config (default: LONGADDRESSXXXXX per EUR Doc 047 §4.5.1.4);
-                    // editable via the standard RECIPIENTS field or the specific field in extra fields.
-                    String defaultRecip11Raw = CaseConfigManager.getInstance().getPayload("CTSW102", 11);
-                    String defaultRecip11 = (defaultRecip11Raw != null && defaultRecip11Raw.contains("|"))
-                        ? defaultRecip11Raw.split("\\|", 2)[1].trim() : "LONGADDRESSXXXXX";
-                    String recip11 = getInput(inputs, "recip_11", defaultRecip11);
-                    p.setRecipients(recip11);
+                    // The shared AMHS RECIPIENTS field displays and supplies the
+                    // configured invalid address for this rejection scenario.
+                    p.setRecipients(r);
                     short pri11 = (priorityStr != null && !priorityStr.isEmpty()) ? Short.parseShort(priorityStr) : (short) 4;
                     p.setAmqpPriority(pri11);
-                    desc = "BINARY amhs_recipients=" + recip11 + " (>8 chars → REJECT)";
+                    desc = "BINARY amhs_recipients=" + r + " (>8 chars → REJECT)";
                     break;
                 }
                 case 12:

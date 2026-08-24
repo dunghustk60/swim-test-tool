@@ -61,7 +61,9 @@ public class TestCasePanel extends JPanel {
     private JTextField priorityField;
     private JComboBox<String> contentTypeCombo;
     private JComboBox<String> brokerProfileField;
+    private JLabel amhsRecipientsLabel;
     private JTextField amhsRecipientsField;
+    private JButton btnUploadRecipients;
     private JTextField bodyTypeField;
     private JTextField topicField;
     private JTextField queueField;
@@ -305,13 +307,14 @@ public class TestCasePanel extends JPanel {
         
         // AMHS Recipients Row
         gbc.gridx = 0; gbc.gridy = row; gbc.weightx = 0;
-        configFormPanel.add(new JLabel("AMHS RECIPIENTS:"), gbc);
+        amhsRecipientsLabel = new JLabel("AMHS RECIPIENTS:");
+        configFormPanel.add(amhsRecipientsLabel, gbc);
         gbc.gridx = 1; gbc.weightx = 1.0;
         amhsRecipientsField = new JTextField("");
         configFormPanel.add(amhsRecipientsField, gbc);
         configFields.put("amhs_recipients", amhsRecipientsField);
         gbc.gridx = 2; gbc.weightx = 0;
-        JButton btnUploadRecipients = new JButton("Upload");
+        btnUploadRecipients = new JButton("Upload");
         btnUploadRecipients.addActionListener(e -> doUploadField("AMHS RECIPIENTS"));
         configFormPanel.add(btnUploadRecipients, gbc);
         row++;
@@ -604,8 +607,20 @@ public class TestCasePanel extends JPanel {
         // Load the standard AMHS recipient from the current case XML. CTSW112
         // manages its recipient list through its dedicated address-file inputs.
         if (!caseId.equals("CTSW112")) {
-            amhsRecipientsField.setText(cfgMgr.getConfig(caseId, "amhs_recipients", ""));
+            String recipients = cfgMgr.getConfig(caseId, "amhs_recipients", "");
+            if ("CTSW102".equals(caseId) && mIdx == 11) {
+                String configuredMessage = cfgMgr.getPayload(caseId, mIdx);
+                if (configuredMessage != null && configuredMessage.contains("|")) {
+                    recipients = configuredMessage.split("\\|", 2)[1].trim();
+                }
+            }
+            amhsRecipientsField.setText(recipients);
         }
+
+        boolean hideRecipients = "CTSW102".equals(caseId) && mIdx == 5;
+        amhsRecipientsLabel.setVisible(!hideRecipients);
+        amhsRecipientsField.setVisible(!hideRecipients);
+        btnUploadRecipients.setVisible(!hideRecipients);
 
         // Clear and rebuild dynamic extra fields
         clearConfigForm();
@@ -807,10 +822,6 @@ public class TestCasePanel extends JPanel {
                         defPath = cfgMgr.getConfig("CTSW102", "binary_file_path", "materials/sample.pdf");
                     }
                     specs.add(new String[]{"binPayload_" + mIdx, "BINARY FILE (msg " + mIdx + ")", defPath});
-                    if (mIdx == 11) {
-                        String defRecip = parts.length > 1 ? parts[1].trim() : "LONGADDRESSXXXXX";
-                        specs.add(new String[]{"recip_11", "RECIP_11 (>8 chars → REJECT)", defRecip});
-                    }
                 } else {
                     specs.add(new String[]{"payload", "TEXT PAYLOAD", raw});
                 }
@@ -1042,7 +1053,8 @@ public class TestCasePanel extends JPanel {
             if ("amhs_user_visible_string".equals(s[0])) hasUvs = true;
         }
         
-        if (!hasIpm) {
+        boolean hideIpmId = "CTSW102".equals(caseId) && (mIdx == 2 || mIdx == 8);
+        if (!hasIpm && !hideIpmId) {
             specs.add(new String[]{"amhs_ipm_id", "IPM ID", defaultIpmId(caseId, cfgMgr)});
         }
         if (!hasReg) {
