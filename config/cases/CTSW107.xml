@@ -11,11 +11,11 @@
       
   <!-- Msg 3: empty AMQP subject property, amhs_subject="Subject example" -->
       
-  <msg idx="3"><![CDATA[[CTSW107-3] | Subject example | Msg3 Payload]]></msg>
+  <msg idx="3"><![CDATA[| Subject example | Msg3 Payload]]></msg>
       
   <!-- Msg 4: AMQP subject="subject from properties", amhs_subject="subject from application property field" -->
       
-  <msg idx="4"><![CDATA[[CTSW107-4] subject from properties | subject from application property field | Msg4 Payload]]></msg>
+  <msg idx="4"><![CDATA[subject from properties | subject from application property field | Msg4 Payload]]></msg>
     
   <config key="amhs_recipients">VVTSSWIM</config>
   <config key="amhs_ats_ft"><![CDATA[010000]]></config>

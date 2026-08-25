@@ -1067,8 +1067,9 @@ public class SwimToAmhsTests {
                 String defBody     = cfgParts.length > 2 ? cfgParts[2].trim() : "Msg3 Payload";
                 String amhsSubject = getInput(inputs, "amhs_subject", defAmhsSubj);
                 body               = getInput(inputs, "body_" + idx, defBody);
+                p.setAmqpSubject("");
                 p.setSubject(amhsSubject);
-                desc = "amhs_subject-prop='" + amhsSubject + "' (no AMQP subject header)";
+                desc = "AMQP-subject-header='' + amhs_subject-prop='" + amhsSubject + "'";
             } else {
                 String defSubject = cfgParts.length > 0 ? cfgParts[0].trim() : "";
                 if (defSubject.isEmpty()) {
@@ -1198,14 +1199,14 @@ public class SwimToAmhsTests {
             String priorityStr = inputs != null ? inputs.get("amqp_priority") : null;
             short priority = (priorityStr != null && !priorityStr.isEmpty()) ? Short.parseShort(priorityStr) : (short) 4;
 
-            // New field keys: originator_109, body_109
+            // Field keys: amhs_originator, body_109
             String configDefault = configMgr.getPayload("CTSW109", 1);
             String[] cfgParts = (configDefault != null && configDefault.contains("|"))
                 ? configDefault.split("\\|", 2) : new String[]{configDefault, "Unknown Orig Body"};
             String defOrig = cfgParts[0] != null ? cfgParts[0].trim() : "UNKNOWN1";
             String defBody = cfgParts.length > 1 ? cfgParts[1].trim() : "Unknown Orig Body";
 
-            String orig = getInput(inputs, "originator_109", defOrig);
+            String orig = getInput(inputs, "amhs_originator", defOrig);
             String body = getInput(inputs, "body_109", defBody);
 
             SwimDriver.AMQPProperties p = new SwimDriver.AMQPProperties();

@@ -903,6 +903,7 @@ public class TestCasePanel extends JPanel {
                     specs.add(new String[]{"amhs_subject", "AMHS_SUBJECT (app prop)", parts.length > 1 ? parts[1].trim() : ""});
                     specs.add(new String[]{"body_" + mIdx,         "BODY PAYLOAD",            parts.length > 2 ? parts[2].trim() : "Msg4 Payload"});
                 } else if (mIdx == 3) {
+                    specs.add(new String[]{"subject_" + mIdx, "AMQP SUBJECT (empty)", ""});
                     specs.add(new String[]{"amhs_subject", "AMHS_SUBJECT (app prop)", parts.length > 1 ? parts[1].trim() : ""});
                     specs.add(new String[]{"body_" + mIdx,         "BODY PAYLOAD",            parts.length > 2 ? parts[2].trim() : "Msg3 Payload"});
                 } else {
@@ -923,9 +924,8 @@ public class TestCasePanel extends JPanel {
             // ── CTSW109 ──────────────────────────────────────────────────────────
             case "CTSW109": {
                 String[] parts = raw.split("\\|", 2);
-                specs.add(new String[]{"amhs_originator", "AMHS ORIGINATOR (unknown → fallback)", parts.length > 0 ? parts[0].trim() : "UNKNOWN1"});
-                specs.add(new String[]{"originator_109", "amhs_originator compatibility", parts.length > 0 ? parts[0].trim() : "UNKNOWN1"});
-                specs.add(new String[]{"body_109",        "BODY PAYLOAD",                         parts.length > 1 ? parts[1].trim() : "Unknown Orig Body"});
+                specs.add(new String[]{"amhs_originator", "UNKNOWN AMHS ORIGINATOR", parts.length > 0 ? parts[0].trim() : "UNKNOWN1"});
+                specs.add(new String[]{"body_109",        "BODY PAYLOAD",            parts.length > 1 ? parts[1].trim() : "Unknown Orig Body"});
                 break;
             }
             // ── CTSW110 ──────────────────────────────────────────────────────────
