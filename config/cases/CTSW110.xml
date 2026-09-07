@@ -7,15 +7,15 @@
       
   <!-- Msg 2: text/utf-8 + data present + amqp-value empty → REJECT -->
       
-  <msg idx="2"><![CDATA[materials/sample.pdf]]></msg>
+  <msg idx="2"><![CDATA[materials/bin.rcd]]></msg>
       
   <!-- Msg 3: octet-stream + data present + amqp-value empty → ACCEPT -->
       
-  <msg idx="3"><![CDATA[materials/sample.pdf]]></msg>
+  <msg idx="3"><![CDATA[materials/bin.rcd]]></msg>
       
   <!-- Msg 4: text/utf-8 + amqp-value present + data empty → ACCEPT -->
       
-  <msg idx="4"/>
+  <msg idx="4" content-type="text/plain; charset=&quot;utf-8&quot;" body-type="AMQP_VALUE"><![CDATA[text-accept]]></msg>
       
   <!-- Msg 5 (opt): text/utf-16 → REJECT -->
       
@@ -32,7 +32,8 @@
   <config key="reg_id_pattern"><![CDATA[REG.CTSW110]]></config>
     
   <config key="binary_file_path"><![CDATA[materials/sample.pdf]]></config>
-  <config key="amhs_recipients">VVTSSWIM</config>
+  <config key="binary_file_path_6"><![CDATA[materials/bin.rcd]]></config>
+  <config key="amhs_recipients">VVTSMHSA</config>
   <config key="amhs_ats_ft"><![CDATA[010000]]></config>
   <config key="amhs_ats_ohi"><![CDATA[OHI]]></config>
 </case>

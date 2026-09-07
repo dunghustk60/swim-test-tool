@@ -15,7 +15,7 @@
       
   <config key="reg_id_pattern"><![CDATA[REG.CTSW113]]></config>
     
-  <config key="amhs_recipients">VVTSSWIM</config>
+  <config key="amhs_recipients">VVTSMHSA</config>
   <config key="amhs_ats_ft"><![CDATA[010000]]></config>
   <config key="amhs_ats_ohi"><![CDATA[OHI]]></config>
 </case>

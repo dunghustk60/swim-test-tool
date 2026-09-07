@@ -8,6 +8,7 @@ import com.amhs.swim.test.util.Utils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -1297,12 +1298,11 @@ public class SwimToAmhsTests {
                     break;
                 }
                 case 4: {
-                    p.setContentType("text/plain; charset=utf-8"); 
+                    p.setContentType("text/plain; charset=\"utf-8\"");
                     p.setBodyType(SwimDriver.AMQPProperties.BodyType.AMQP_VALUE); 
                     String confDefault = configMgr.getPayload("CTSW110", 4);
-                    // String payloadText = (inputs!=null?inputs.getOrDefault("text_4", confDefault):confDefault);
-                    String payloadText = "";
-                    payload = payloadText.getBytes(); 
+                    String payloadText = getInput(inputs, "text_4", confDefault != null ? confDefault : "text-accept");
+                    payload = payloadText.getBytes(StandardCharsets.UTF_8);
                     desc="text/utf-8|amqp-value PRESENT → ACCEPT"; 
                     break;
                 }
@@ -1317,10 +1317,19 @@ public class SwimToAmhsTests {
                 }
                 case 6: {
                     p.setContentType("text/plain; charset=utf-8"); 
-                    p.setBodyType(SwimDriver.AMQPProperties.BodyType.AMQP_VALUE); 
+                    p.setBodyType(SwimDriver.AMQPProperties.BodyType.MULTI_SECTION_INVALID); 
                     String confDefault = configMgr.getPayload("CTSW110", 6);
-                    String payloadText = (inputs!=null?inputs.getOrDefault("text_6", confDefault):confDefault);
-                    payload = payloadText.getBytes(); 
+                    String payloadText = getInput(inputs, "text_6", confDefault);
+                    String defaultBinaryPath = configMgr.getConfig(
+                        "CTSW110", "binary_file_path_6", "materials/bin.rcd");
+                    String binaryPath = getInput(inputs, "binFile_6", defaultBinaryPath);
+                    byte[] dataPayload = binaryPath != null
+                        && !binaryPath.trim().isEmpty()
+                        && Files.exists(Paths.get(binaryPath))
+                            ? Files.readAllBytes(Paths.get(binaryPath))
+                            : "BinaryData".getBytes(StandardCharsets.UTF_8);
+                    p.setExtraProp("additional_data_payload", dataPayload);
+                    payload = payloadText.getBytes(StandardCharsets.UTF_8); 
                     desc="amqp-value+data both → REJECT"; 
                     break;
                 }
@@ -1686,7 +1695,7 @@ public class SwimToAmhsTests {
             p.setExtraProp("amhs_notification_request", notifReq);
             
             // amhs_originator — REQUIRED so AMHS knows where to send notifications (RN/NRN)
-            String defOrig = CaseConfigManager.getInstance().getConfig("CTSW113", "amhs_originator", "VVTSYMYX");
+            String defOrig = CaseConfigManager.getInstance().getConfig("CTSW113", "amhs_originator", "VVTSSWIM");
             p.setOriginator(getInput(inputs, "amhs_originator", defOrig));
             
             // amqp_reply_to — Optional but recommended so IUT knows where to route the technical response (RN/NRN)

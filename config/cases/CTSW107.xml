@@ -17,7 +17,7 @@
       
   <msg idx="4"><![CDATA[subject from properties | subject from application property field | Msg4 Payload]]></msg>
     
-  <config key="amhs_recipients">VVTSSWIM</config>
+  <config key="amhs_recipients">VVTSMHSA</config>
   <config key="amhs_ats_ft"><![CDATA[010000]]></config>
   <config key="amhs_ats_ohi"><![CDATA[OHI]]></config>
 </case>

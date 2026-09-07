@@ -38,5 +38,5 @@
   <config key="amhs_ats_ohi"><![CDATA[OHI]]></config>
     
   <config key="binary_file_path"><![CDATA[materials/sample.pdf]]></config>
-  <config key="amhs_recipients">VVTSSWIM</config>
+  <config key="amhs_recipients">VVTSMHSA VVTSABCD</config>
 </case>

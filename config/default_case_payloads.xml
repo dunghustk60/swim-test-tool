@@ -52,6 +52,7 @@
     <config key="ipm_id_pattern"><![CDATA[IPM.CTSW102.{ts}]]></config>
     <config key="reg_id_pattern"><![CDATA[REG.CTSW102.{idx}]]></config>
     <config key="amhs_ats_ft"><![CDATA[010000]]></config>
+    <config key="amhs_ats_ft_3"><![CDATA[]]></config>
     <config key="amhs_ats_ohi"><![CDATA[OHI]]></config>
   </case>
 
@@ -186,11 +187,11 @@
     <!-- Msg 1: octet-stream + empty data + empty amqp-value → REJECT -->
     <msg idx="1"><![CDATA[]]></msg>
     <!-- Msg 2: text/utf-8 + data present + amqp-value empty → REJECT -->
-    <msg idx="2"><![CDATA[materials/sample.pdf]]></msg>
+    <msg idx="2"><![CDATA[materials/bin.rcd]]></msg>
     <!-- Msg 3: octet-stream + data present + amqp-value empty → ACCEPT -->
-    <msg idx="3"><![CDATA[materials/sample.pdf]]></msg>
+    <msg idx="3"><![CDATA[materials/bin.rcd]]></msg>
     <!-- Msg 4: text/utf-8 + amqp-value present + data empty → ACCEPT -->
-    <msg idx="4"/>
+    <msg idx="4" content-type="text/plain; charset=&quot;utf-8&quot;" body-type="AMQP_VALUE"><![CDATA[text-accept]]></msg>
     <!-- Msg 5 (opt): text/utf-16 → REJECT -->
     <msg idx="5" content-type="text/plain; charset=&quot;utf-16&quot;"><![CDATA[[CTSW110-5] UTF-16 Payload]]></msg>
     <!-- Msg 6 (opt): text/utf-8 + both amqp-value and data present → REJECT -->
@@ -198,6 +199,7 @@
     <!-- IPM-ID and Registered-ID patterns -->
     <config key="ipm_id_pattern"><![CDATA[IPM.CTSW110.{ts}]]></config>
     <config key="reg_id_pattern"><![CDATA[REG.CTSW110]]></config>
+    <config key="binary_file_path_6"><![CDATA[materials/bin.rcd]]></config>
     <config key="amhs_ats_ft"><![CDATA[010000]]></config>
     <config key="amhs_ats_ohi"><![CDATA[OHI]]></config>
   </case>
@@ -290,9 +292,9 @@
     <!-- IPM-ID and Registered-ID patterns -->
     <config key="ipm_id_pattern"><![CDATA[IPM.CTSW116.{ts}]]></config>
     <config key="reg_id_pattern"><![CDATA[REG.CTSW116]]></config>
-    <config key="binary_file_path_1"><![CDATA[materials/sample.pdf]]></config>
-    <config key="binary_file_path_2"><![CDATA[materials/sample.pdf]]></config>
-    <config key="amhs_ftbp_file_name_1"><![CDATA[sample.pdf]]></config>
+    <config key="binary_file_path_1"><![CDATA[materials/bin.rcd]]></config>
+    <config key="binary_file_path_2"><![CDATA[materials/bin.rcd]]></config>
+    <config key="amhs_ftbp_file_name_1"><![CDATA[bin.rcd]]></config>
     <config key="amhs_ftbp_file_name_2"><![CDATA[sample.pdf.gz]]></config>
     <config key="swim_compression_1"><![CDATA[]]></config>
     <config key="swim_compression_2"><![CDATA[gzip]]></config>

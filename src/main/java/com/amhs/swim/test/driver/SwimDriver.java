@@ -116,7 +116,7 @@ public class SwimDriver {
         if (!isConnected) {
             connect();
         }
-        
+        selectRawAmqpAdapterIfRequired(properties);
         activeAdapter.publishMessage(topic, payload, properties);
     }
     
@@ -131,6 +131,7 @@ public class SwimDriver {
 
     public void publishToTopic(String topic, byte[] payload, Map<String, Object> properties) throws Exception {
         if (!isConnected) connect();
+        selectRawAmqpAdapterIfRequired(properties);
         activeAdapter.publishToTopic(topic, payload, properties);
     }
     
@@ -140,7 +141,36 @@ public class SwimDriver {
 
     public void publishToQueue(String queue, byte[] payload, Map<String, Object> properties) throws Exception {
         if (!isConnected) connect();
+        selectRawAmqpAdapterIfRequired(properties);
         activeAdapter.publishToQueue(queue, payload, properties);
+    }
+
+    /**
+     * JCSMP exposes a single logical message body and cannot create the deliberately
+     * invalid AmqpValue + Data body required by CTSW110.6. Use the native AMQP 1.0
+     * adapter only for that wire-level test shape.
+     */
+    private void selectRawAmqpAdapterIfRequired(Map<String, Object> properties) throws Exception {
+        if (properties == null
+                || !"MULTI_SECTION_INVALID".equals(properties.get("amqp_body_type"))
+                || activeAdapter instanceof QpidSwimAdapter) {
+            return;
+        }
+
+        QpidSwimAdapter qpidAdapter = new QpidSwimAdapter();
+        if (!qpidAdapter.isAvailable()) {
+            throw new IllegalStateException(
+                "CTSW110.6 requires the Qpid AMQP 1.0 adapter to encode AmqpValue and Data sections");
+        }
+
+        qpidAdapter.connect();
+        SwimMessagingAdapter previousAdapter = activeAdapter;
+        activeAdapter = qpidAdapter;
+        isConnected = true;
+        if (previousAdapter != null) {
+            previousAdapter.close();
+        }
+        Logger.log("INFO", "Selected Qpid AMQP 1.0 adapter for CTSW110.6 multi-section body.");
     }
     
     public void publishToQueue(String queue, byte[] payload, AMQPProperties properties) throws Exception {

@@ -932,8 +932,12 @@ public class TestCasePanel extends JPanel {
             case "CTSW110": {
                 if (mIdx == 2 || mIdx == 3) {
                     specs.add(new String[]{"binFile_" + mIdx, "BINARY FILE", raw});
-                } else if (mIdx == 4 || mIdx == 5 || mIdx == 6) {
+                } else if (mIdx == 4 || mIdx == 5) {
                     specs.add(new String[]{"text_" + mIdx, "TEXT PAYLOAD", raw});
+                } else if (mIdx == 6) {
+                    specs.add(new String[]{"text_6", "TEXT PAYLOAD", raw});
+                    specs.add(new String[]{"binFile_6", "BINARY FILE",
+                        cfgMgr.getConfig(caseId, "binary_file_path_6", "materials/bin.rcd")});
                 }
                 // msg 1 has no editable payload (empty by design)
                 break;
@@ -1080,8 +1084,10 @@ public class TestCasePanel extends JPanel {
             }
         }
         if (atsFtSpec == null) {
+            String atsFtConfigKey = "CTSW102".equals(caseId) && mIdx == 3
+                ? "amhs_ats_ft_3" : "amhs_ats_ft";
             atsFtSpec = new String[]{"amhs_ats_ft", "AMHS ATS FT (DDHHMM)",
-                cfgMgr.getConfig(caseId, "amhs_ats_ft", "010000")};
+                cfgMgr.getConfig(caseId, atsFtConfigKey, "010000")};
         }
         if (atsOhiSpec == null) {
             String ohiConfigKey = "CTSW106".equals(caseId)

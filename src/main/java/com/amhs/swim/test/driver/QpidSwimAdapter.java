@@ -509,11 +509,15 @@ public class QpidSwimAdapter implements SwimMessagingAdapter {
         
         message.setApplicationProperties(new ApplicationProperties(appProperties));
         
-        // Set body - Data, AmqpValue, or AmqpSequence
+        // Set body - Data, AmqpValue, or AmqpSequence. CTSW110.6 deliberately
+        // appends a Data section after AmqpValue to exercise invalid-body rejection.
         String bodyType = (String) properties.getOrDefault("amqp_body_type", "DATA");
-        Section body = createBodySection(payload, 
-            (String) properties.getOrDefault("amhs_bodypart_type", "ia5-text"),
-            bodyType);
+        boolean multiSectionInvalid = "MULTI_SECTION_INVALID".equalsIgnoreCase(bodyType);
+        Section body = multiSectionInvalid
+            ? new AmqpValue(new String(payload, StandardCharsets.UTF_8))
+            : createBodySection(payload,
+                (String) properties.getOrDefault("amhs_bodypart_type", "ia5-text"),
+                bodyType);
         message.setBody(body);
 
         // Set footer
@@ -527,7 +531,11 @@ public class QpidSwimAdapter implements SwimMessagingAdapter {
         }
         
         // Send message via AMQP 1.0 sender link
-        sendAmqpMessage(message);
+        byte[] additionalData = null;
+        if (multiSectionInvalid && properties.get("additional_data_payload") instanceof byte[]) {
+            additionalData = (byte[]) properties.get("additional_data_payload");
+        }
+        sendAmqpMessage(message, additionalData);
     }
     
     private Session getActiveSession() {
@@ -611,6 +619,10 @@ public class QpidSwimAdapter implements SwimMessagingAdapter {
      * Send message via AMQP 1.0 sender link.
      */
     private void sendAmqpMessage(Message message) throws Exception {
+        sendAmqpMessage(message, null);
+    }
+
+    private void sendAmqpMessage(Message message, byte[] additionalData) throws Exception {
         if (sender == null) {
             sender = getActiveSession().sender("test-sender");
             // Set settlement modes per EUR Doc 047 interoperability requirements
@@ -629,6 +641,9 @@ public class QpidSwimAdapter implements SwimMessagingAdapter {
             try {
                 buffer.clear();
                 message.encode(new org.apache.qpid.proton.codec.WritableBuffer.ByteBufferWrapper(buffer));
+                if (additionalData != null) {
+                    appendDataSection(buffer, additionalData);
+                }
                 break;
             } catch (BufferOverflowException e) {
                 bufferSize *= 2;
@@ -669,6 +684,24 @@ public class QpidSwimAdapter implements SwimMessagingAdapter {
         } else if (state instanceof org.apache.qpid.proton.amqp.messaging.Released) {
             throw new Exception("Broker RELEASED the message (delivery failed).");
         }
+    }
+
+    /**
+     * Append a raw AMQP Data section. Used only by CTSW110.6, whose body is
+     * intentionally invalid because an AmqpValue section has already been encoded.
+     */
+    private void appendDataSection(ByteBuffer buffer, byte[] data) {
+        buffer.put((byte) 0x00); // described type
+        buffer.put((byte) 0x53); // smallulong descriptor
+        buffer.put((byte) 0x75); // data section descriptor
+        if (data.length <= 255) {
+            buffer.put((byte) 0xA0); // vbin8
+            buffer.put((byte) data.length);
+        } else {
+            buffer.put((byte) 0xB0); // vbin32
+            buffer.putInt(data.length);
+        }
+        buffer.put(data);
     }
     
     @Override

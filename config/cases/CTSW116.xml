@@ -15,14 +15,14 @@
       
   <config key="reg_id_pattern"><![CDATA[REG.CTSW116]]></config>
     
-  <config key="binary_file_path"><![CDATA[materials/sample.pdf]]></config>
-  <config key="binary_file_path_1"><![CDATA[materials/sample.pdf]]></config>
-  <config key="binary_file_path_2"><![CDATA[materials/sample.pdf]]></config>
-  <config key="amhs_ftbp_file_name_1"><![CDATA[sample.pdf]]></config>
+  <config key="binary_file_path"><![CDATA[materials/bin.rcd]]></config>
+  <config key="binary_file_path_1"><![CDATA[materials/bin.rcd]]></config>
+  <config key="binary_file_path_2"><![CDATA[materials/bin.rcd]]></config>
+  <config key="amhs_ftbp_file_name_1"><![CDATA[bin.rcd]]></config>
   <config key="amhs_ftbp_file_name_2"><![CDATA[sample.pdf.gz]]></config>
   <config key="swim_compression_1"><![CDATA[]]></config>
   <config key="swim_compression_2"><![CDATA[gzip]]></config>
-  <config key="amhs_recipients">VVTSSWIM</config>
+  <config key="amhs_recipients">VVTSMHSA</config>
   <config key="amhs_ats_ft"><![CDATA[010000]]></config>
   <config key="amhs_ats_ohi"><![CDATA[OHI]]></config>
 </case>

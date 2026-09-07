@@ -2,6 +2,7 @@ package com.amhs.swim.test.verifier;
 
 import com.amhs.swim.test.util.Utils;
 import com.solacesystems.jcsmp.*;
+import org.apache.qpid.proton.amqp.messaging.Header;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -199,6 +200,7 @@ public class Verifier {
         System.out.println("\n" + Utils.repeat("=", 60));
         System.out.println("--- Message Received ---");
 
+
         System.out.println("Standard Properties:");
         printStandardProperty("id", msg.getApplicationMessageId());
         printStandardProperty("user_id", ""); // Not directly available in JCSMP
@@ -214,6 +216,7 @@ public class Verifier {
         printStandardProperty("group_sequence", "");
         printStandardProperty("reply_to_group_id", "");
         printStandardProperty("priority", String.valueOf(msg.getPriority()));
+        printStandardProperty("durable", String.valueOf(msg.getDeliveryMode()));
 
         System.out.println("\nApplication Properties:");
         SDTMap userProps = msg.getProperties();

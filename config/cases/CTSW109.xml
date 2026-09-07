@@ -5,7 +5,7 @@
       
   <msg idx="1"><![CDATA[UNKNOWN1 | Unknown Orig Body]]></msg>
     
-  <config key="amhs_recipients">VVTSSWIM</config>
+  <config key="amhs_recipients">VVTSMHSA</config>
   <config key="amhs_ats_ft"><![CDATA[010000]]></config>
   <config key="amhs_ats_ohi"><![CDATA[OHI]]></config>
 </case>
