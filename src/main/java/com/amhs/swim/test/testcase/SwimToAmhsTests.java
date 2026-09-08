@@ -1408,24 +1408,21 @@ public class SwimToAmhsTests {
             byte[] payload; String desc;
             switch (idx) {
                 case 1: {
-                    // Text payload ≤ max — user can supply custom text; pad to 1 KB minimum
+                    // CTSW111.1 uses its own exact configured text payload size.
                     p.setContentType("text/plain; charset=utf-8");
                     p.setBodyType(SwimDriver.AMQPProperties.BodyType.AMQP_VALUE);
                     String defText = configMgr.getPayload("CTSW111", 1);
                     String userText = getInput(inputs, "maxSizeText", defText != null ? defText : "");
-                    byte[] rawBytes = userText.getBytes();
-                    // If user text is shorter than 1 KB, pad with 'A' so it is a real 1-KB payload
-                    if (rawBytes.length < 1024) {
-                        byte[] padded = new byte[1024];
-                        System.arraycopy(rawBytes, 0, padded, 0, rawBytes.length);
-                        Arrays.fill(padded, rawBytes.length, padded.length, (byte) 'A');
-                        payload = padded;
-                        Logger.logCase(testCaseId, "INFO",
-                            "[MSG-1] User text (" + rawBytes.length + "B) padded to 1024B to meet test requirement.");
-                    } else {
-                        payload = rawBytes;
+                    byte[] rawBytes = userText.getBytes(StandardCharsets.UTF_8);
+                    int configuredSize = Integer.parseInt(
+                        configMgr.getConfig("CTSW111", "text_payload_size_1", "").trim());
+                    payload = Arrays.copyOf(rawBytes, configuredSize);
+                    if (rawBytes.length < configuredSize) {
+                        Arrays.fill(payload, rawBytes.length, configuredSize, (byte) 'A');
                     }
-                    desc = "text/plain | " + payload.length + "B ≤ max → ACCEPT";
+                    Logger.logCase(testCaseId, "INFO",
+                        "[MSG-1] Text payload generated at configured size: " + configuredSize + "B.");
+                    desc = "text/plain | configured size=" + payload.length + "B → ACCEPT";
                     break;
                 }
                 case 2: {
@@ -1448,24 +1445,21 @@ public class SwimToAmhsTests {
                     break;
                 }
                 case 3: {
-                    // Text payload > max — user can supply custom text; pad to max+1 KB if shorter
+                    // CTSW111.3 uses its own exact configured text payload size.
                     p.setContentType("text/plain; charset=utf-8");
                     p.setBodyType(SwimDriver.AMQPProperties.BodyType.AMQP_VALUE);
                     String defText = configMgr.getPayload("CTSW111", 3);
                     String userText = getInput(inputs, "maxSizeTextOver", defText != null ? defText : "");
-                    byte[] rawBytes = userText.getBytes();
-                    int overSize = max + 1024;
-                    if (rawBytes.length <= max) {
-                        byte[] padded = new byte[overSize];
-                        System.arraycopy(rawBytes, 0, padded, 0, Math.min(rawBytes.length, overSize));
-                        Arrays.fill(padded, rawBytes.length, padded.length, (byte) 'X');
-                        payload = padded;
-                        Logger.logCase(testCaseId, "INFO",
-                            "[MSG-3] User text (" + rawBytes.length + "B) padded to " + overSize + "B to exceed max.");
-                    } else {
-                        payload = rawBytes;
+                    byte[] rawBytes = userText.getBytes(StandardCharsets.UTF_8);
+                    int configuredSize = Integer.parseInt(
+                        configMgr.getConfig("CTSW111", "text_payload_size_3", "").trim());
+                    payload = Arrays.copyOf(rawBytes, configuredSize);
+                    if (rawBytes.length < configuredSize) {
+                        Arrays.fill(payload, rawBytes.length, configuredSize, (byte) 'X');
                     }
-                    desc = "text/plain | " + payload.length + "B > max → REJECT";
+                    Logger.logCase(testCaseId, "INFO",
+                        "[MSG-3] Text payload generated at configured size: " + configuredSize + "B.");
+                    desc = "text/plain | configured size=" + payload.length + "B → REJECT";
                     break;
                 }
                 case 4: {

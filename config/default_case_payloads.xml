@@ -218,6 +218,8 @@
     <!-- IPM-ID and Registered-ID patterns -->
     <config key="ipm_id_pattern"><![CDATA[IPM.CTSW111.{ts}]]></config>
     <config key="reg_id_pattern"><![CDATA[REG.CTSW111]]></config>
+    <config key="text_payload_size_1"><![CDATA[1000000]]></config>
+    <config key="text_payload_size_3"><![CDATA[1000001]]></config>
     <config key="amhs_ats_ft"><![CDATA[010000]]></config>
     <config key="amhs_ats_ohi"><![CDATA[OHI]]></config>
   </case>

@@ -22,6 +22,8 @@
   <config key="ipm_id_pattern"><![CDATA[IPM.CTSW111.{ts}]]></config>
       
   <config key="reg_id_pattern"><![CDATA[REG.CTSW111]]></config>
+  <config key="text_payload_size_1"><![CDATA[100]]></config>
+  <config key="text_payload_size_3"><![CDATA[101]]></config>
     
   <config key="binary_file_path_2"><![CDATA[materials/small_payload.bin]]></config>
   <config key="binary_file_path_4"><![CDATA[materials/large_payload.bin]]></config>
