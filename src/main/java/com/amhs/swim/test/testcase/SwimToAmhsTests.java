@@ -1397,7 +1397,6 @@ public class SwimToAmhsTests {
         public boolean executeSingle(int idx, int attempt, Map<String, String> inputs) throws Exception {
             String r = recip(inputs);
             CaseConfigManager configMgr = CaseConfigManager.getInstance();
-            int max = 1048576; // 1 MB — must match IUT gateway config
 
             String priorityStr = inputs != null ? inputs.get("amqp_priority") : null;
             short priority = (priorityStr != null && !priorityStr.isEmpty()) ? Short.parseShort(priorityStr) : (short) 4;
@@ -1473,10 +1472,9 @@ public class SwimToAmhsTests {
                         Logger.logCase(testCaseId, "INFO",
                             "[MSG-4] Loaded binary: " + path + " (" + payload.length + "B)");
                     } else {
-                        payload = new byte[max + 1024];
-                        Arrays.fill(payload, (byte) 0xFF);
-                        Logger.logCase(testCaseId, "WARN",
-                            "[MSG-4] No binary file found at \"" + path + "\"; using " + (max + 1024) + "B dummy payload.");
+                        String error = "[MSG-4] Binary file not found at \"" + path + "\".";
+                        Logger.logCase(testCaseId, "ERROR", error);
+                        throw new IOException(error);
                     }
                     desc = "binary | " + payload.length + "B > max → REJECT";
                     break;
