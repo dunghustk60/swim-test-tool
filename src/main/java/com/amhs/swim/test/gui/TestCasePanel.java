@@ -1033,8 +1033,10 @@ public class TestCasePanel extends JPanel {
                 String fileKey = (mIdx == 1) ? "binFile" : "binFile2";
                 specs.add(new String[]{fileKey,              "BINARY FILE",                              defPath});
                 specs.add(new String[]{"amhs_ftbp_last_mod", "FTBP LAST MOD (DDMMYYhhmmssZ per §4.5.2.7)", defLastMod});
-                specs.add(new String[]{"swim_compression", "SWIM COMPRESSION (e.g. gzip)",
-                    cfgMgr.getConfig(caseId, "swim_compression_" + mIdx, mIdx == 2 ? "gzip" : "")});
+                if (mIdx == 2) {
+                    specs.add(new String[]{"swim_compression", "SWIM COMPRESSION (e.g. gzip)",
+                        cfgMgr.getConfig(caseId, "swim_compression_2", "gzip")});
+                }
                 specs.add(new String[]{"amhs_bodypart_type", "BODY PART TYPE", "file-transfer-body-part"});
                 specs.add(new String[]{"amhs_ipm_id", "IPM ID", defaultIpmId(caseId, cfgMgr)});
                 String regPattern116 = cfgMgr.getConfig(caseId, "reg_id_pattern", "REG.GW.{idx}");

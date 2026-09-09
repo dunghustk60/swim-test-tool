@@ -2001,18 +2001,23 @@ public class SwimToAmhsTests {
 
             byte[] sendPayload = binPayload;
             String desc;
-            String derivedFileName = Paths.get(filePath).getFileName().toString();
-            String defaultFtbpFileName = idx == 2 ? derivedFileName + ".gz" : derivedFileName;
-            String ftbpFileName = configMgr.getConfig("CTSW116", "amhs_ftbp_file_name_" + idx,
-                defaultFtbpFileName);
+            String ftbpFileName = Paths.get(filePath).getFileName().toString();
             
             if (idx == 2) {
+                String defCompression = configMgr.getConfig(
+                    "CTSW116", "swim_compression_2", "gzip");
+                String compression = getInput(inputs, "swim_compression", defCompression).trim();
+                if (!"gzip".equalsIgnoreCase(compression)) {
+                    String error = "[MSG-2] Unsupported swim_compression value: \""
+                        + compression + "\". Expected \"gzip\".";
+                    Logger.logCase(testCaseId, "ERROR", error);
+                    throw new IllegalArgumentException(error);
+                }
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
                 try (GZIPOutputStream gzip = new GZIPOutputStream(baos)) { gzip.write(binPayload); }
                 sendPayload = baos.toByteArray();
-                p.setExtraProp("swim_compression", "gzip");
-                // Per EUR Doc 047 §4.5.2.6: amhs_ftbp_file_name should reflect the actual file,
-                // including the .gz extension when GZIP compression is applied.
+                p.setExtraProp("swim_compression", compression);
+                // Compression is a transport encoding; retain the original file name.
                 p.setExtraProp("amhs_ftbp_file_name", ftbpFileName);
                 // Per user request: use the ACTUAL compressed size for the object_size metric
                 p.setExtraProp("amhs_ftbp_object_size", (long)sendPayload.length);
