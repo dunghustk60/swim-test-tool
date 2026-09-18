@@ -805,11 +805,16 @@ public class TestCasePanel extends JPanel {
                     specs.add(new String[]{"binFile", "BINARY FILE PATH", binaryPath});
                 } else {
                     specs.add(new String[]{"payload", "TEXT PAYLOAD", raw});
+                    if (mIdx == 3) {
+                        specs.add(new String[]{"repeat_count", "NUMBER OF REPEATS",
+                            cfgMgr.getConfig(caseId, "repeat_count_3", "1")});
+                    }
                 }
                 specs.add(new String[]{"amhs_ipm_id", "IPM ID", defaultIpmId(caseId, cfgMgr)});
                 String regPattern101 = cfgMgr.getConfig(caseId, "reg_id_pattern", "REG.GW.{idx}");
                 specs.add(new String[]{"amhs_registered_identifier", "REG. ID", regPattern101.replace("{idx}", String.valueOf(mIdx))});
-                specs.add(new String[]{"amhs_user_visible_string", "USER VISIBLE STRING", mIdx == 1 ? "Standard Text Message" : "Standard Binary Message"});
+                specs.add(new String[]{"amhs_user_visible_string", "USER VISIBLE STRING",
+                    mIdx == 2 ? "Standard Binary Message" : "Standard Text Message"});
                 break;
             }
             // ── CTSW102 ──────────────────────────────────────────────────────────

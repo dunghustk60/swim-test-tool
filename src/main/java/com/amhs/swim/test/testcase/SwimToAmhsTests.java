@@ -221,7 +221,14 @@ public class SwimToAmhsTests {
                     getMessageBooleanMetadata(configMgr, "CTSW101", 2, "mandatory", true),
                     getMessageBooleanMetadata(configMgr, "CTSW101", 2, "optional", false),
                     getMessageMetadata(configMgr, "CTSW101", 2, "input-key", "binFile"),
-                    getMessageBooleanMetadata(configMgr, "CTSW101", 2, "file", true))
+                    getMessageBooleanMetadata(configMgr, "CTSW101", 2, "file", true)),
+                new TestMessage(3,
+                    getMessageMetadata(configMgr, "CTSW101", 3, "description",
+                        "Repeated text message | subject: send message repeatly CTSW101.3"),
+                    configMgr.getPayload("CTSW101", 3),
+                    getMessageBooleanMetadata(configMgr, "CTSW101", 3, "mandatory", true),
+                    getMessageBooleanMetadata(configMgr, "CTSW101", 3, "optional", false),
+                    getMessageMetadata(configMgr, "CTSW101", 3, "input-key", "p3"))
             ); // CTSW101
         }
 
@@ -317,6 +324,62 @@ public class SwimToAmhsTests {
                         "SENT", "application/octet-stream | priority=" + priority + " | len=" + payload.length);
                     Logger.logPayloadDetail(testCaseId, 2, p.toMap(), "[binary] " + payload.length + " bytes from " + path);
                     Logger.logPayloadDetailReceived(testCaseId, 2, p.toMap(), queue101_2, p.toMap().containsKey("amhs_ipm_id") ? String.valueOf(p.toMap().get("amhs_ipm_id")) : "", payload);
+                    return true;
+                }
+                case 3: {
+                    String repeatText = getInput(inputs, "repeat_count",
+                        configMgr.getConfig("CTSW101", "repeat_count_3", "1"));
+                    int repeatCount;
+                    try {
+                        repeatCount = Integer.parseInt(repeatText.trim());
+                    } catch (NumberFormatException ex) {
+                        throw new IllegalArgumentException("NUMBER OF REPEATS must be a positive integer.", ex);
+                    }
+                    if (repeatCount <= 0) {
+                        throw new IllegalArgumentException("NUMBER OF REPEATS must be greater than zero.");
+                    }
+
+                    String payloadText = getInput(inputs, "p3", configMgr.getPayload("CTSW101", 3));
+                    byte[] payload = payloadText.getBytes(StandardCharsets.UTF_8);
+                    String subject = configMgr.getConfig("CTSW101", "amqp_subject_3",
+                        "send message repeatly CTSW101.3");
+                    String priorityText = inputs != null ? inputs.get("amqp_priority") : null;
+                    short priority = priorityText != null && !priorityText.isEmpty()
+                        ? Short.parseShort(priorityText) : (short) 4;
+                    String regPattern = configMgr.getConfig("CTSW101", "reg_id_pattern", "REG.GW.{idx}");
+                    String ipmPattern = configMgr.getConfig("CTSW101", "ipm_id_pattern", "IPM.GW.{ts}");
+                    String queue = inputs != null
+                        ? inputs.getOrDefault("queue", TestConfig.getInstance().getProperty("gateway.default_queue", "TEST.QUEUE"))
+                        : TestConfig.getInstance().getProperty("gateway.default_queue", "TEST.QUEUE");
+
+                    for (int repeatIndex = 1; repeatIndex <= repeatCount; repeatIndex++) {
+                        SwimDriver.AMQPProperties p = new SwimDriver.AMQPProperties();
+                        p.setRecipients(r);
+                        p.setAmqpPriority(priority);
+                        p.setContentType("text/plain; charset=utf-8");
+                        p.setBodyType(SwimDriver.AMQPProperties.BodyType.AMQP_VALUE);
+                        p.setAmqpSubject(subject);
+                        p.setRegisteredId(regPattern.replace("{idx}", "3"));
+                        p.setUserVisibleStr("Standard Text Message");
+
+                        String uniqueSuffix = System.currentTimeMillis() + "." + repeatIndex;
+                        String uniqueIpmId = ipmPattern.replace("{ts}", uniqueSuffix);
+                        p.setIpmId(uniqueIpmId);
+
+                        Map<String, String> iterationInputs = inputs != null
+                            ? new java.util.HashMap<>(inputs) : new java.util.HashMap<>();
+                        iterationInputs.put("amhs_ipm_id", uniqueIpmId);
+                        dual(iterationInputs, payload, p);
+
+                        Logger.logTransmission(testCaseId, 3, attempt, queue, "SENT",
+                            "repeat " + repeatIndex + "/" + repeatCount
+                                + " | subject=" + subject + " | len=" + payload.length);
+                        Logger.logCase(testCaseId, "INFO",
+                            "[MSG-3] Sent " + repeatIndex + " of " + repeatCount + ".");
+                        Logger.logPayloadDetail(testCaseId, 3, p.toMap(), payloadText);
+                        Logger.logPayloadDetailReceived(testCaseId, 3, p.toMap(), queue,
+                            uniqueIpmId, payload);
+                    }
                     return true;
                 }
             }

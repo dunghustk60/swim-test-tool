@@ -24,9 +24,16 @@
          description="Binary message | priority=4 | content-type: application/octet-stream | body: data"
          mandatory="true" optional="false" input-key="binFile" file="true"
          content-type="application/octet-stream" body-type="data"><![CDATA[materials/sample.pdf]]></msg>
+    <!-- Msg 3: Repeat Msg 1 with a fixed AMQP subject -->
+    <msg idx="3"
+         description="Repeated text message | subject: send message repeatly CTSW101.3"
+         mandatory="true" optional="false" input-key="p3" file="false"
+         content-type="text/plain;charset=utf-8" body-type="AMQP_VALUE"><![CDATA[default text]]></msg>
     <!-- IPM-ID and Registered-ID patterns per EUR Doc 047 §4.5.4.27-4.5.4.31 -->
     <config key="ipm_id_pattern"><![CDATA[IPM.CTSW101.{ts}]]></config>
     <config key="reg_id_pattern"><![CDATA[REG.CTSW101.{idx}]]></config>
+    <config key="amqp_subject_3"><![CDATA[send message repeatly CTSW101.3]]></config>
+    <config key="repeat_count_3"><![CDATA[1]]></config>
     <config key="amhs_ats_ft"><![CDATA[010000]]></config>
     <config key="amhs_ats_ohi"><![CDATA[OHI]]></config>
   </case>

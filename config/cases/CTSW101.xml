@@ -10,12 +10,22 @@
   <!-- Msg 2: Binary message (PDF file path) - loaded from materials directory -->
       
   <msg body-type="data" content-type="application/octet-stream" description="Binary message | priority=4 | content-type: application/octet-stream | body: data" file="true" idx="2" input-key="binFile" mandatory="true" optional="false"><![CDATA[materials/sample.pdf]]></msg>
+
+  <!-- Msg 3: Repeat CTSW101.1 text message using the configured repeat count -->
+
+  <msg body-type="AMQP_VALUE"
+  content-type="text/plain;charset=utf-8"
+  description="Repeated text message | subject: send message repeatly CTSW101.3"
+  file="false" idx="3" input-key="p3" mandatory="true" optional="false"><![CDATA[CTSW101.1 TEST]]></msg>
       
   <!-- IPM-ID and Registered-ID patterns per EUR Doc 047 §4.5.4.27-4.5.4.31 -->
       
   <config key="ipm_id_pattern"><![CDATA[IPM.CTSW101.{ts}]]></config>
       
   <config key="reg_id_pattern"><![CDATA[REG.CTSW101.{idx}]]></config>
+
+  <config key="amqp_subject_3"><![CDATA[send message repeatly CTSW101.3]]></config>
+  <config key="repeat_count_3"><![CDATA[1]]></config>
     
   <config key="binary_file_path"><![CDATA[materials/address_512.txt]]></config>
   <config key="amhs_recipients">VVTSMHSA</config>
